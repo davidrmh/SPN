@@ -370,15 +370,17 @@ function _dotstring_edges!(node::AbstractNode, array::Array{String,1}, memory::A
 end
 
 """
-Function to create a string in
+Function to create a file in
 DOT format
 """
-function dotstring(node)
+function dotfile(node, filename = "my_spn.gv")
     str = _dotstring_labels(node)
     array = [str]
     memory = []
     _dotstring_edges!(node, array, memory)
     str = pop!(array)
     str = string(str, "}")
-    str
+    open(filename, "w") do io
+        write(io, str)
+    end
 end
