@@ -18,6 +18,7 @@ include("general_methods.jl")
 include("sum_nodes_methods.jl")
 include("product_nodes_methods.jl")
 include("leaf_nodes_methods.jl")
+include("structure_learning.jl")
 
 #Utilities
 include("utilities.jl")
