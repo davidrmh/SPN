@@ -105,7 +105,7 @@ should start in the root node.
 You can't start the search using a
 leaf node.
 """
-function node_by_id(root::Union{SumNode, ProductNode}, id::Integer)
+function filter_by_id(root::Union{SumNode, ProductNode}, id::Integer)
     if root.id == id
         return root
     end
@@ -132,7 +132,7 @@ Ideally this search starts in the root node.
 
 The search can't initialize in a leaf node
 """
-function nodes_by_type(root::Union{SumNode, ProductNode}, type::Type)
+function filter_by_type(root::Union{SumNode, ProductNode}, type::Type)
     #to store the nodes
     nodes = []
     isa(root, type) ? push!(nodes, root) : nothing
