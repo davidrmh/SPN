@@ -46,25 +46,29 @@ function scope(node::Union{DistributionNode, IndicatorNode}, neg_string = "_NEG"
 end
 
 """
-Get the variable names that are descendants of a non-leaf node (sum or product node)
-Returns an array with symbols
+Get the variables reachable from a node
+This is not the scope of a node since
+for indicator nodes it could return
+[X1, X1_Neg, X2, X2_1, X2_3]
+
+Returns an array of symbols
 """
-function variablenames(node::Union{SumNode, ProductNode})
-    variables = []
-    for child in node.children
-        push!(variables, variablenames(child))
+function variablenames(node::AbstractNode)::Array{Symbol}
+    #leaf node
+    if !(hasfield(typeof(node), :children))
+        return [node.varname]
     end
-    return vcat(unique(variables)...)
-end
+    #Get the leaves
+    leaves = filter_by_type(node, Union{DistributionNode, IndicatorNode})
 
-"""
-Get the variable name for a leaf node
-Returns a symbol
-"""
-function variablenames(node::Union{DistributionNode, IndicatorNode})
-    node.varname
-end
+    #To stores the symbols
+    varnames = []
 
+    for node in leaves
+        !(node.varname in varnames) ? push!(varnames, node.varname) : nothing
+    end
+    varnames
+end
 
 """
 Get the descendants of a node
