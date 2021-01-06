@@ -65,44 +65,36 @@ function variablenames(node::Union{DistributionNode, IndicatorNode})
     node.varname
 end
 
-"""
-INTERNAL USE ONLY
-Get the descendants of a node
-Modifies IN-PLACE a given array that will store the descendants
-"""
-function _descendants!(node::AbstractNode, array::AbstractArray, memory::AbstractArray)
-    #IndicatorNodes and DistributionNodes
-    #Just have one descendant (themselves)
-    if isa(node, Union{IndicatorNode, DistributionNode})
-        if !(node.id in memory)
-            push!(array, node)
-            push!(memory, node.id)
-        end
-        return
-    end
-
-    #By definition, a node is its own descendant
-    if !(node.id in memory)
-        push!(array, node)
-        push!(memory, node.id)
-    end
-
-    for child in node.children
-        _descendants!(child, array, memory)
-    end
-    
-end
 
 """
 Get the descendants of a node
-returns an array of nodes
-For the inner work see internal function _descendants!
+returns an array with nodes
 """
 function descendants(node::AbstractNode)
-    array = []
-    memory = []
-    _descendants!(node, array, memory)
-    array
+    #to store the descendants
+    des = []
+    #By definition a node is its own descendant
+    push!(des, node)
+
+    #Leaf nodes have no children
+    if !hasfield(typeof(node), :children)
+        return des
+    end
+
+    #nodes to explore
+    #Shallow copy
+    explore = copy(node.children)
+
+    while explore !=[]
+        child = pop!(explore)
+
+        #Add the node if hasn't been added
+        !(child in des) ? push!(des, child) : nothing
+
+        #Add child's children to continue the exploration
+        hasfield(typeof(child), :children) ? push!(explore, copy(child.children)...) : nothing
+    end
+    des
 end
 
 """
