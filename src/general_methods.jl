@@ -104,3 +104,32 @@ function descendants(node::AbstractNode)
     _descendants!(node, array, memory)
     array
 end
+
+"""
+Get a node by its id
+The search is done using BFS and ideally
+should start in the root node.
+
+You can't start the search using a
+leaf node.
+"""
+function node_by_id(root::Union{SumNode, ProductNode}, id::Integer)
+    if root.id == id
+        return root
+    end
+    #Shallow copy, so every change
+    #in the returned node will change
+    #the spn
+    explore = copy(root.children)
+    while explore != []
+        #Explore a child (BFS manner)
+        child = pop!(explore)
+        if child.id == id
+            return child
+        #Add children of child node
+        elseif !isa(child, Union{DistributionNode, IndicatorNode})
+            push!(explore, copy(child.children)...)
+        end
+    end
+    throw("No node with id:$id")
+end
