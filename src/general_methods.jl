@@ -133,3 +133,29 @@ function node_by_id(root::Union{SumNode, ProductNode}, id::Integer)
     end
     throw("No node with id:$id")
 end
+
+"""
+Get the nodes of a certain type
+Ideally this search starts in the root node.
+
+The search can't initialize in a leaf node
+"""
+function nodes_by_type(root::Union{SumNode, ProductNode}, type::Type)
+    #to store the nodes
+    nodes = []
+    isa(root, type) ? push!(nodes, root) : nothing
+
+    #to store the nodes to be explored
+    explore = []
+    #shallow copy
+    push!(explore, copy(root.children)...)
+    
+    while explore != []
+        child = pop!(explore)
+        #Add child if is the desired type and hasn't been added
+        (isa(child, type) && !(child in nodes)) ? push!(nodes, child) : nothing
+        #Add child's children to the exploration
+        hasfield(typeof(child), :children) ? push!(explore, copy(child.children)...) : nothing
+    end
+    nodes
+end
