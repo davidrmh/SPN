@@ -127,7 +127,7 @@ function node_by_id(root::Union{SumNode, ProductNode}, id::Integer)
         if child.id == id
             return child
         #Add children of child node
-        elseif !isa(child, Union{DistributionNode, IndicatorNode})
+        elseif hasfield(typeof(child), :children)
             push!(explore, copy(child.children)...)
         end
     end
