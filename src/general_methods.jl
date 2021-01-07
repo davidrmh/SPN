@@ -2,9 +2,15 @@
 General methods for nodes
 ========================================#
 """
+    addchildren!(parent, children)
+
 Add children to a parent node.
-Children is an interable with Nodes.
-This function is used for building a SPN using a top to bottom approach.
+This function is used for building an SPN using a top to bottom approach.
+Both arguments are modified in-place.
+
+# Arguments
+- `parent::AbstractNode` parent node.
+- `children::Array{<:AbstractNode}` children to add.
 """
 function addchildren!(parent::AbstractNode, children::Array{<:AbstractNode})
 
@@ -18,25 +24,43 @@ function addchildren!(parent::AbstractNode, children::Array{<:AbstractNode})
 end
 
 """
-Get the scope of a non-leaf node (sum or product node)
-Returns an array with symbols
+    scope(node, sep_string)
+
+Get the scope of a non-leaf node (sum or product node).
+Return an array with symbols.
+
+# Arguments
+- `node::Union{SumNode, ProductNode}` Node
+- `sep_string = "_"::String` String separator.
+
+The argument `sep_string` is used to consider the cases when dealing with
+indicator nodes that represent distinct possible values for the same random variable.
+For example, if X1 takes on three values, then we could represent it with
+three indicator nodes with varname fields :X1_1, :X1_2, :X1_3 respectively.
 """
-function scope(node::Union{SumNode, ProductNode}, neg_string = "_NEG"::String)
+function scope(node::Union{SumNode, ProductNode}, sep_string = "_"::String)
     sc = []
     for child in node.children
-        push!(sc, scope(child, neg_string))
+        push!(sc, scope(child, sep_string))
     end
     return vcat(unique(sc)...)
 end
 
 """
-Get the scope for leaf nodes
-Returns a symbol
+    scope(node, sep_string)
+
+Get the scope of a leaf node (Distribution or Indicator node).
+Return a symbol.
+
+# Arguments
+- `node::Union{DistributionNode, IndicatorNode}` Node
+- `sep_string = "_"::String` String separator.
 """
-function scope(node::Union{DistributionNode, IndicatorNode}, neg_string = "_NEG"::String)
+function scope(node::Union{DistributionNode, IndicatorNode}, sep_string = "_"::String)
     stringsymbol = String(node.varname)
-    #Check if is a negated variable
-    substringloc = findfirst(uppercase(neg_string), uppercase(stringsymbol))
+    #Check if varname refers to a possible value of
+    #a variable (this is used for finite support variables)
+    substringloc = findfirst(uppercase(sep_string), uppercase(stringsymbol))
     if  substringloc!= nothing
         varsymbol = Symbol(stringsymbol[1:(substringloc[1] - 1)])
     else
@@ -46,12 +70,16 @@ function scope(node::Union{DistributionNode, IndicatorNode}, neg_string = "_NEG"
 end
 
 """
-Get the variables reachable from a node
-This is not the scope of a node since
-for indicator nodes it could return
-[X1, X1_Neg, X2, X2_1, X2_3]
+    variablenames(node)
 
-Returns an array of symbols
+Get the variables reachable from a node. This is not the sames as `scope` function
+since for indicator variables representing different values of the same
+random variable, they are considered different names.
+
+Return an array of symbols
+
+# Arguments
+- `node::AbstractNode` A node <: AbstractNode.
 """
 function variablenames(node::AbstractNode)::Array{Symbol}
     #leaf node
@@ -71,8 +99,11 @@ function variablenames(node::AbstractNode)::Array{Symbol}
 end
 
 """
-Get the descendants of a node
-returns an array with nodes
+    descendants(node)
+Get the descendants of a node. Return an array with nodes.
+
+# Arguments
+- `node::AbstractNode` A node <: AbstractNode.
 """
 function descendants(node::AbstractNode)
     #to store the descendants
@@ -102,12 +133,14 @@ function descendants(node::AbstractNode)
 end
 
 """
-Get a node by its id
-The search is done using BFS and ideally
-should start in the root node.
+    filter_by_id(root, id)
+Get a node with id = `id` that is reachable from `root` node.
+Return the node with the specified id.
+The search can't start in a leaf node.
 
-You can't start the search using a
-leaf node.
+# Arguments
+- `root::Union{SumNode, ProductNode}` A sum or product node. Ideally a root node.
+- `id::Integer`
 """
 function filter_by_id(root::Union{SumNode, ProductNode}, id::Integer)
     if root.id == id
@@ -131,10 +164,15 @@ function filter_by_id(root::Union{SumNode, ProductNode}, id::Integer)
 end
 
 """
-Get the nodes of a certain type
-Ideally this search starts in the root node.
+    filter_by_type(root, type)
 
-The search can't initialize in a leaf node
+Get a set of nodes with of type `type` that are reachable from `root`
+Ideally this search starts in the root node.
+The search can't start in a leaf node.
+
+# Arguments
+- `root::Union{SumNode, ProductNode}` Sum or product node.
+- `type::Type` The type of the desired nodes.
 """
 function filter_by_type(root::Union{SumNode, ProductNode}, type::Type)
     #to store the nodes
@@ -145,7 +183,7 @@ function filter_by_type(root::Union{SumNode, ProductNode}, type::Type)
     explore = []
     #shallow copy
     push!(explore, copy(root.children)...)
-    
+
     while explore != []
         child = pop!(explore)
         #Add child if is the desired type and hasn't been added
