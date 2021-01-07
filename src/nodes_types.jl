@@ -4,27 +4,27 @@ Definition of Nodes types
 abstract type AbstractNode end
 
 struct ProductNode <: AbstractNode
-    children::AbstractVector{Union{AbstractNode, AbstractArray}}
-    parents::AbstractVector{Union{AbstractNode, AbstractArray}}
+    children::AbstractVector{Union{AbstractNode,AbstractArray}}
+    parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
     id::Integer
 end
 
 struct SumNode <: AbstractNode
-    children::AbstractVector{Union{AbstractNode, AbstractArray}}
-    parents::AbstractVector{Union{AbstractNode, AbstractArray}}
-    weights::Array{Float64, 1}
+    children::AbstractVector{Union{AbstractNode,AbstractArray}}
+    parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
+    weights::Array{Float64,1}
     id::Integer
 end
 
 struct DistributionNode <: AbstractNode
     distribution::Distribution
-    parents::AbstractVector{Union{SumNode, ProductNode, AbstractArray}}
+    parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
     id::Integer
 end
 
 struct IndicatorNode <: AbstractNode
-    parents::AbstractVector{Union{SumNode, ProductNode, AbstractArray}}
+    parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
     id::Integer
 end
