@@ -1,11 +1,17 @@
 #========================================
 Methods related to structure learning
 
-TO DO 
+TO DO
     Method to delete unreachable nodes
 ========================================#
 """
-Function to disconnect a parent and a child
+    disconnect!(parent, child)
+Disconnect a parent and a child node.
+Both arguments are modified in-place.
+
+# Arguments
+- `parent::AbstractNode` Parent node.
+- `child::AbstractNode` Child node.
 """
 function disconnect!(parent::AbstractNode, child::AbstractNode)
     #Check if nodes are connected
@@ -31,7 +37,11 @@ function disconnect!(parent::AbstractNode, child::AbstractNode)
 end
 
 """
-Delete a node from the network
+    delete!(node)
+Delete `node` from the network.
+
+# Arguments
+- `node::AbstractNode`
 """
 function delete!(node::AbstractNode)
 
@@ -53,4 +63,3 @@ function delete!(node::AbstractNode)
         end
     end
 end
-
