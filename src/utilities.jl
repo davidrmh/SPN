@@ -2,16 +2,20 @@
 Utilities
 ========================================#
 """
+    _dotstring_labels(node)
+
 INTERNAL FUNCTION
-This function is used for creating the
-the DOT string.
-The result a string with the following
-pattern (IS NOT THE COMPLETE DOT STRING)
+
+The function is used to create the labeling part of the DOT format string
+representing the SPN. Its result is similar to the below example
 
 digraph G {
 1[label="+"];
 2[label="*"];
 3[label="X1"];
+
+# Arguments
+- `node::AbstractNode` A node.
 """
 function _dotstring_labels(node::AbstractNode)
     #get descendants
@@ -35,16 +39,24 @@ function _dotstring_labels(node::AbstractNode)
 end
 
 """
+    _dotstring_labels(node)
+
 INTERNAL FUNCTION
-This function is used for creating the
-the DOT string.
 
-Ideally:
-node is the root of the SPN
-array is an array containing the string created with
-the function _dotstring_labels.
+The function is used to create the labeling part of the DOT format string
+representing the SPN. Its result is similar to the below example
 
-array is modified in place and will contain the string
+digraph G {
+1[label="+"];
+2[label="*"];
+3[label="X1"];
+
+# Arguments
+- `node::AbstractNode` A node. Ideally the root node.
+- `array::Array{String,1}`. Array containing the string from `_dotstring_labels`
+- `memory::AbstractArray`
+
+`array` is modified in place and will contain the string
 with the edges in DOT notation.
 """
 function _dotstring_edges!(node::AbstractNode, array::Array{String,1}, memory::AbstractArray)
@@ -78,10 +90,15 @@ function _dotstring_edges!(node::AbstractNode, array::Array{String,1}, memory::A
 end
 
 """
-Function to create a file in
-DOT format
+    dotfile(node, filename = "my_spn.gv")
+
+Create a file in DOT format.
+
+# Arguments
+- `node::AbstractNode`A node. Ideally the root node.
+- `filename::String` Path with the name of the gv file.
 """
-function dotfile(node, filename = "my_spn.gv")
+function dotfile(node::AbstractNode, filename = "my_spn.gv"::String)
     str = _dotstring_labels(node)
     array = [str]
     memory = []
