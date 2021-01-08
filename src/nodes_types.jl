@@ -6,27 +6,27 @@ abstract type AbstractNode end
 struct ProductNode <: AbstractNode
     children::AbstractVector{Union{AbstractNode,AbstractArray}}
     parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
-    id::Integer
+    id::String
 end
 
 struct SumNode <: AbstractNode
     children::AbstractVector{Union{AbstractNode,AbstractArray}}
     parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
     weights::Array{Float64,1}
-    id::Integer
+    id::String
 end
 
 struct DistributionNode <: AbstractNode
     distribution::Distribution
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
-    id::Integer
+    id::String
 end
 
 struct IndicatorNode <: AbstractNode
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
-    id::Integer
+    id::String
 end
 
 
@@ -48,7 +48,7 @@ Create a product node with a given id.
 # Arguments
 - `children::AbstractVector{Union{AbstractNode,AbstractArray}}` Children nodes.
 - `parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}` Parent nodes.
-- `id::Integer` id for unique identification.
+- `id::String` id for unique identification.
 
 # Supertype Hierarchy
 ProductNode <: AbstractNode <: Any
@@ -56,7 +56,7 @@ ProductNode <: AbstractNode <: Any
 function ProductNode(children, parents)
     global _idcounter
     _idcounter = _idcounter + 1
-    ProductNode(children, parents, _idcounter)
+    ProductNode(children, parents, string(_idcounter))
 end
 
 """
@@ -71,7 +71,7 @@ Create a sum node with a given id.
 # Arguments
 - `children::AbstractVector{Union{AbstractNode,AbstractArray}}` Children nodes.
 - `parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}` Parent nodes.
-- `id::Integer` id for unique identification.
+- `id::String` id for unique identification.
 
 # Supertype Hierarchy
 SumNode <: AbstractNode <: Any
@@ -79,7 +79,7 @@ SumNode <: AbstractNode <: Any
 function SumNode(children, parents, weights)
     global _idcounter
     _idcounter = _idcounter + 1
-    SumNode(children, parents, weights, _idcounter)
+    SumNode(children, parents, weights, string(_idcounter))
 end
 
 """
@@ -95,7 +95,7 @@ Create a distribution node with a given id.
 - `distribution::Distribution` a distribution object from Distributions package.
 - `parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}` Parent nodes.
 - `varname::Symbol` Variable name (see examples).
-- `id::Integer` id for unique identification.
+- `id::String` id for unique identification.
 
 # Supertype Hierarchy
 DistributionNode <: AbstractNode <: Any
@@ -112,7 +112,7 @@ julia> normal = DistributionNode(Distributions.Normal(), [], :X1);
 function DistributionNode(distribution, parents, varname)
     global _idcounter
     _idcounter = _idcounter + 1
-    DistributionNode(distribution, parents, varname, _idcounter)
+    DistributionNode(distribution, parents, varname, string(_idcounter))
 end
 
 """
@@ -127,7 +127,7 @@ Create an indicator node with a given id.
 # Arguments
 - `parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}` Parent nodes.
 - `varname::Symbol` Variable name (see examples).
-- `id::Integer` id for unique identification.
+- `id::String` id for unique identification.
 
 # Supertype Hierarchy
 IndicatorNode <: AbstractNode <: Any
@@ -144,5 +144,5 @@ julia>indicator = IndicatorNode([], :X1_3);
 function IndicatorNode(parents, varname)
     global _idcounter
     _idcounter = _idcounter + 1
-    IndicatorNode(parents, varname, _idcounter)
+    IndicatorNode(parents, varname, string(_idcounter))
 end
