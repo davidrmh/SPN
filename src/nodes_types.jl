@@ -3,27 +3,27 @@ Definition of Nodes types
 ========================================#
 abstract type AbstractNode end
 
-struct ProductNode <: AbstractNode
+mutable struct ProductNode <: AbstractNode
     children::AbstractVector{Union{AbstractNode,AbstractArray}}
     parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
     id::String
 end
 
-struct SumNode <: AbstractNode
+mutable struct SumNode <: AbstractNode
     children::AbstractVector{Union{AbstractNode,AbstractArray}}
     parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}
     weights::Array{Float64,1}
     id::String
 end
 
-struct DistributionNode <: AbstractNode
+mutable struct DistributionNode <: AbstractNode
     distribution::Distribution
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
     id::String
 end
 
-struct IndicatorNode <: AbstractNode
+mutable struct IndicatorNode <: AbstractNode
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
     id::String
