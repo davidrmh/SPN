@@ -65,47 +65,29 @@ function delete!(node::AbstractNode)
 end
 
 """
-    _rename_copy!(root)
+    _register_copy!(root)
 
 INTERNAL USE ONLY
-Rename the nodes in a copy created with copysubspn function.
-The modificatio is IN-PLACE.
+Rename the nodes in a copy created with `copysubspn` function.
+The modification is IN-PLACE.
 
 # Arguments
-- `root:Union{SumNode, ProductNode}` Node representing the root node.
-- `sep::String` Separator to distinguish between the original node id
-and the copies id. If node.id is "1" then the first copy will have id
-equal to string(node.id, sep, 1).
-If this latter node has a k-th copy (k greater than 2), then this new copy will have
-the id string(node_copy.id, k).
-
-# Examples
-
-If the original node has node.id = "1" and sep = "_", then the first
-copy will have id = "1_1".
-If we make a copy of this first copy then this new copy will have
-id = "1_2" and similar if we continue making copies of the last copy.
+- `root:AbstractNode` Node representing the root node from a copy.
 """
-function _rename_copy!(root::Union{SumNode, ProductNode}, sep="_"::String)
+function _register_copy!(root::AbstractNode)
     #Get the descendants
     des = descendants(root)
 
-    #Rename
+    #Register and update fields `id` and `copyof`
+    global _idcounter
     for node in des
-        #Is first copy
-        if !contains(node.id, sep)
-            node.id = string(node.id, sep, "1")
-        #Is copy of a previous copy
-        else
-            splt = split(node.id, sep)
-            #Original id
-            origin = splt[1]
-            #Last copy number
-            n = parse(Int64, splt[2])
-            node.id = string(origin, sep, n + 1)
-        end
+        #Update global variable for counting
+        _idcounter = _idcounter + 1
+        node.copyof = node.id
+        node.id = _idcounter
     end
 end
+
 """
     copysubspn(root)
 
@@ -143,7 +125,7 @@ function copysubspn(root::Union{SumNode, ProductNode})
     #Establish root as root node
     push!(subspn.parents, undef)
 
-    #Rename nodes
-    _rename_copy!(subspn, "_");
+    #Register copied nodes
+    _register_copy!(subspn);
     return subspn
 end
