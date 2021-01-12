@@ -26,13 +26,13 @@ function _dotstring_labels(node::AbstractNode)
     #to each node
     for n in des
         if isa(n, SumNode)
-            str = str * string(n.id, "[label = \"+\\n id:$(n.id)\"];\n")
+            str = str * string(n.id, " [label = \"+ \\n id:$(n.id) \\n cp:$(n.copyof)\"];\n")
         elseif isa(n, ProductNode)
-            str = str * string(n.id, "[label = \"*\\n id:$(n.id)\"];\n")
+            str = str * string(n.id, " [label = \"* \\n id:$(n.id) \\n cp:$(n.copyof)\"];\n")
         elseif isa(n, Union{IndicatorNode, DistributionNode})
-            str = str * string(n.id, "[label=\"$(string(n.varname))\\n id:$(n.id)\"];\n")
+            str = str * string(n.id, " [label=\"$(string(n.varname)) \\n id:$(n.id) \\n cp:$(n.copyof)\"];\n")
         else
-            str = str * string(n.id, "[label = \"UNKNOW\"];\n")
+            str = str * string(n.id, " [label = \"UNKNOW\"];\n")
         end
     end
     str
