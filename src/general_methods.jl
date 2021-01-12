@@ -140,9 +140,9 @@ The search can't start in a leaf node.
 
 # Arguments
 - `root::Union{SumNode, ProductNode}` A sum or product node. Ideally a root node.
-- `id::String` id of the node.
+- `id::Int64` id of the desired node.
 """
-function filter_by_id(root::Union{SumNode, ProductNode}, id::String)
+function filter_by_id(root::Union{SumNode, ProductNode}, id::Int64)
     if root.id == id
         return root
     end
