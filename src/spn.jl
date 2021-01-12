@@ -25,3 +25,13 @@ include("utilities.jl")
 
 #Examples of architectures
 include("examples.jl")
+
+"""
+    _reset_counter!()
+
+This function resets the value (0) for the global variable `_idcounter`
+"""
+function _reset_counter!()
+    global _idcounter
+    _idcounter = Int64(0)
+end
