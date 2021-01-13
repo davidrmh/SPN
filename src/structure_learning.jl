@@ -1,8 +1,5 @@
 #========================================
 Methods related to structure learning
-
-TO DO
-    Method to delete unreachable nodes
 ========================================#
 """
     disconnect!(parent, child)
@@ -158,4 +155,47 @@ function reachable_x(node::AbstractNode, varname::Symbol)
         occursin(str_target, string(v)) ? push!(I_X, v) : nothing
     end
     I_X
+end
+
+"""
+    dismiss!(root, varname, targetlist)
+
+Disconnect the nodes reachable from `root` that are related to `varname`
+and can reach the nodes in `targetlist`.
+This function is the Dismiss function (Algorithm 2) from
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+
+Modifies `root` IN-PLACE.
+
+# Arguments
+- `root::AbstractNode` Node where the search begins.
+- `varname::Symbol`
+- `targetlist::Array` Array with symbols of the variables to disconnect.
+
+If we have a variable `X1` that can take on `K` distinct values, `X1_1, ... X1_K`
+then varname is `:X1`. If we want to disconnect `X1_1` and `X1_2` then
+`targetlist = [:X1_1, :X1_2]`.
+"""
+function dismiss!(root::AbstractNode, varname::Symbol, targetlist::Array)
+    #Validation
+    variables_reachable = reachable_x(root, varname)
+    if !(issubset(targetlist, variables_reachable))
+        throw("Target list must be a subset of reachable_x(root, varname)")
+    end
+
+    #Get descendants
+    des = descendants(root)
+
+    for node in des
+        if hasfield(typeof(node), :children)
+            children = copy(node.children)
+            for child in children
+                reach_by_child = reachable_x(child, varname)
+                #Empty set is subset of every set
+                if issubset(reach_by_child, targetlist) && reach_by_child != []
+                    disconnect!(node, child)
+                end
+            end
+        end
+    end
 end
