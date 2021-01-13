@@ -44,3 +44,26 @@ function naivebayesmixture(weights = [[0.5, 0.2, 0.3], [0.6, 0.4], [0.9, 0.1], [
 
     s1
 end
+
+function independet(num_var = 3)
+    #root node
+    root = ProductNode([], [undef])
+
+    for i = 1:num_var
+        #each sum node has
+        #associated a binary variable
+        s = SumNode([], [], [0.5, 0.5])
+
+        #children
+        x_name = Symbol(string("X", i, "_1"))
+        #Negation of x
+        x_neg_name = Symbol(string("X", i, "_2"))
+        x = IndicatorNode([], x_name)
+        x_neg = IndicatorNode([], x_neg_name)
+
+        #Connect
+        addchildren!(root, [s])
+        addchildren!(s, [x, x_neg])
+    end
+    return root
+end
