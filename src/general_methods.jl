@@ -89,7 +89,7 @@ function variablenames(node::AbstractNode)::Array{Symbol}
     #Get the leaves
     leaves = filter_by_type(node, Union{DistributionNode, IndicatorNode})
 
-    #To stores the symbols
+    #To store the symbols
     varnames = []
 
     for node in leaves
@@ -193,3 +193,41 @@ function filter_by_type(root::Union{SumNode, ProductNode}, type::Type)
     end
     nodes
 end
+
+"""
+    topologicalorder(root)
+
+Create a topological ordered list (increasing order) of the sum and product
+nodes in an SPN.
+The ordering is created in a bottom-up perspective.
+
+Return a list with the ordered nodes.
+
+# Arguments
+- `root::Union{SumNode, ProductNode}` Root node of the SPN
+"""
+function topologicalorder(root::Union{SumNode, ProductNode})
+    #Get the leaves nodes
+    leaves = filter_by_type(root, Union{IndicatorNode, DistributionNode})
+
+    #Add leaves parents
+    top_order = []
+    for node in leaves
+        for parent in node.parents
+            !(parent in top_order) ? push!(top_order, node.parents...) : nothing
+        end
+    end
+
+    #Add the parents "layer wise"
+    #root node has root.parents = [undef]
+    for node in top_order
+        #not a root node
+        if node.parents != [undef]
+            for parent in node.parents
+                #Not previously added
+                !(parent in top_order) ? push!(top_order, parent) : nothing
+            end #inner for
+        end #if
+    end #outter for
+    return top_order
+end #function
