@@ -231,3 +231,58 @@ function topologicalorder(root::Union{SumNode, ProductNode})
     end #outter for
     return top_order
 end #function
+
+"""
+    normalize!(root)
+
+Locally normalize a sum product network.
+
+This is Algorithm 1 from `On Theoretical Properties of Sum-Product Networks`
+by `Peharz, R., et al.`
+
+# Arguments
+- `root::Union{SumNode, ProductNode}` Root of the SPN.
+
+The function modifies the nodes IN-PLACE.
+"""
+function normalize!(root::Union{SumNode, ProductNode})
+    #Topological order
+    top_order = topologicalorder(root)
+
+    #Initialize nonnegative correction factors
+    #fot product nodes
+    dict_alpha = Dict()
+    for node in top_order
+        if isa(node, ProductNode)
+            dict_alpha[node.id] = 1
+        end
+    end
+
+    for node in top_order
+        #Normalize sum node
+        if isa(node, SumNode)
+            alpha = sum(node.weights)
+            @assert alpha != 0 "For node $(node.id) the sum of weights is zero!"
+            node.weights = node.weights ./ alpha
+        #Product Node
+        elseif isa(node, ProductNode)
+            alpha = dict_alpha[node.id]
+            dict_alpha[node.id] = 1
+        end
+
+        #Correct parents
+        for parent in node.parents
+            if isa(parent, SumNode)
+                #Find the corresponding weight
+                #and update it
+                for i in eachindex(parent.weights)
+                    if parent.children[i] === node
+                        parent.weights[i] = alpha * parent.weights[i]
+                    end
+                end
+            elseif isa(parent, ProductNode)
+                dict_alpha[parent.id] = alpha * dict_alpha[parent.id]
+            end
+        end
+    end
+end
