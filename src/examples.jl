@@ -3,7 +3,7 @@ Some Examples
 ========================================#
 function normalmixture(weights = [1/3, 1/3, 1/3], mu = [-5, -2, 2], sig = [0.5, 3, 1])
     #Create the sum node
-    sumnode = SumNode([], [], weights)
+    sumnode = SumNode([], [undef], weights)
 
     #Create each normal component
     components = Array{AbstractNode, 1}(undef, length(weights))
@@ -18,7 +18,7 @@ function normalmixture(weights = [1/3, 1/3, 1/3], mu = [-5, -2, 2], sig = [0.5, 
 end
 
 function naivebayesmixture(weights = [[0.5, 0.2, 0.3], [0.6, 0.4], [0.9, 0.1], [0.3, 0.7], [0.2, 0.8]])
-    s1 = SumNode([], [], weights[1]) #root
+    s1 = SumNode([], [undef], weights[1]) #root
     s2 = SumNode([], [], weights[2])
     s3 = SumNode([], [], weights[3])
     s4 = SumNode([], [], weights[4])
