@@ -7,6 +7,7 @@ TO DO:
     Implement sample function
 =#
 using Distributions
+using DataFrames
 #This global variable is to assign an ID to each node
 _idcounter = 0
 
