@@ -2,6 +2,7 @@
 Definition of Nodes types
 ========================================#
 abstract type AbstractNode end
+abstract type LeafNode <: AbstractNode end
 
 mutable struct ProductNode <: AbstractNode
     children::AbstractVector{Union{AbstractNode,AbstractArray}}
@@ -18,7 +19,7 @@ mutable struct SumNode <: AbstractNode
     copyof::Int64
 end
 
-mutable struct DistributionNode <: AbstractNode
+mutable struct DistributionNode <: LeafNode
     distribution::Distribution
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
@@ -26,7 +27,7 @@ mutable struct DistributionNode <: AbstractNode
     copyof::Int64
 end
 
-mutable struct IndicatorNode <: AbstractNode
+mutable struct IndicatorNode <: LeafNode
     parents::AbstractVector{Union{SumNode,ProductNode,AbstractArray}}
     varname::Symbol
     id::Int64
@@ -113,7 +114,7 @@ When a node is not a copy, `copyof` is set to `0`
 - `copyof::Int64` id of the node that is beeing copied.
 
 # Supertype Hierarchy
-DistributionNode <: AbstractNode <: Any
+DistributionNode <: LeafNode <: AbstractNode <: Any
 
 # Examples
 ```jldoctest
@@ -150,7 +151,7 @@ When a node is not a copy, `copyof` is set to `0`
 - `distribution::Distribution` In this case is always a Bernoulli(1)
 
 # Supertype Hierarchy
-IndicatorNode <: AbstractNode <: Any
+IndicatorNode <: LeafNode <: AbstractNode <: Any
 
 # Examples
 ```jldoctest
