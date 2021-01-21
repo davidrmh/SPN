@@ -31,6 +31,7 @@ mutable struct IndicatorNode <: AbstractNode
     varname::Symbol
     id::Int64
     copyof::Int64
+    distribution::Distribution
 end
 
 
@@ -134,7 +135,7 @@ end
 
 Create an indicator node. With this signature, id field is handled internally.
 
-    IndicatorNode(parents, varname, id, copyof)
+    IndicatorNode(parents, varname, id, copyof, distribution)
 
 Create an indicator node with a given id.
 The field `copyof` means the node is a copy of the node whose `id` is `copyof`
@@ -146,6 +147,7 @@ When a node is not a copy, `copyof` is set to `0`
 - `varname::Symbol` Variable name (see examples).
 - `id::Int64` id for unique identification.
 - `copyof::Int64` id of the node that is beeing copied.
+- `distribution::Distribution` In this case is always a Bernoulli(1)
 
 # Supertype Hierarchy
 IndicatorNode <: AbstractNode <: Any
@@ -162,5 +164,5 @@ julia>indicator = IndicatorNode([], :X1_3);
 function IndicatorNode(parents, varname)
     global _idcounter
     _idcounter = _idcounter + 1
-    IndicatorNode(parents, varname, _idcounter, 0)
+    IndicatorNode(parents, varname, _idcounter, 0, Bernoulli(1))
 end
