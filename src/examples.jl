@@ -8,7 +8,7 @@ function normalmixture(weights = [1/3, 1/3, 1/3], mu = [-5, -2, 2], sig = [0.5, 
     #Create each normal component
     components = Array{AbstractNode, 1}(undef, length(weights))
     for i in eachindex(mu)
-        varname = Symbol(string("X", i))
+        varname = Symbol(:X)
         components[i] = DistributionNode(Distributions.Normal(mu[i], sig[i]), [], varname)
     end
 
