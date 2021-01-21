@@ -329,6 +329,12 @@ function sample(root::AbstractNode, size::Int64)
 
     #Dictionary to store all the samples
     dict_all = Dict()
+    #All symbols reachable from root
+    varnames = variablenames(root)
+    #initialization
+    for key in varnames
+        dict_all[key] = []
+    end
 
     #Obtain one sample from the SPN
     for i in 1:size
@@ -337,14 +343,14 @@ function sample(root::AbstractNode, size::Int64)
         sample!(root, dict_one)
 
         #Store the sample in dict_all
-        for key in keys(dict_one)
-            val = dict_one[key]
-            if haskey(dict_all, key)
-                push!(dict_all[key], val)
-            else
-                dict_all[key] = [val]
-            end #if
+        for key in varnames
+            #To cope with indicator nodes
+            val = !haskey(dict_one, key) ? 0 : dict_one[key]
+            #Convert true to 1
+            val = val === true ? 1 : val
+            push!(dict_all[key], val)
         end #inner for
+
     end #outter for
     #Convert to DataFrame
     DataFrame(dict_all)
