@@ -314,3 +314,38 @@ function isnormalized(root::AbstractNode)
     end
     true
 end
+
+"""
+    sample(root::AbstractNode, size::Int64)
+Get `size` samples from an SPN.
+Return a DataFrame with the samples.
+
+# Arguments
+- `root::AbstractNode` Root node of a normalized SPN
+- `size::Int64` Number of samples
+"""
+function sample(root::AbstractNode, size::Int64)
+    @assert isnormalized(root) "You need to normalize the SPN"
+
+    #Dictionary to store all the samples
+    dict_all = Dict()
+
+    #Obtain one sample from the SPN
+    for i in 1:size
+        #dictionary to store one sample
+        dict_one = Dict()
+        sample!(root, dict_one)
+
+        #Store the sample in dict_all
+        for key in keys(dict_one)
+            val = dict_one[key]
+            if haskey(dict_all, key)
+                push!(dict_all[key], val)
+            else
+                dict_all[key] = [val]
+            end #if
+        end #inner for
+    end #outter for
+    #Convert to DataFrame
+    DataFrame(dict_all)
+end

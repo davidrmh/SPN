@@ -49,3 +49,22 @@ function iscomplete(root::AbstractNode)
     end
     true
 end
+
+"""
+    sample!(node::SumNode, dict:Dict)
+Get one sample from a sum node.
+The argument dict is modified in-place when reaching a leaf node
+that is a descendant  of `node`.
+
+# Arguments
+- `node::SumNode` Complete and locally normalized sum node.
+- `dict::Dict` A dictionary whose keys are symbols and
+value the random sample associated to that symbol.
+"""
+function sample!(node::SumNode, dict::Dict{Any, Any})
+    #Select the edge to follow
+    z = Distributions.Categorical(node.weights ./ sum(node.weights))
+    #rand returns an array, that's why the [1]
+    idx = Distributions.rand(z, 1)[1]
+    sample!(node.children[idx], dict)
+end
