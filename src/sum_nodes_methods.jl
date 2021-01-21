@@ -28,3 +28,24 @@ function setweights!(node::SumNode, w::Array{Float64, 1})
     end
     push!(node.weights, w...)
 end
+
+"""
+    iscomplete(root)
+Determine if a SPN is complete.
+
+# Arguments
+- `root::AbstractNode` root node of the SPN.
+"""
+function iscomplete(root::AbstractNode)
+    #Get all sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+
+    #All the children must have the same scope
+    #So the set difference of their scope, should be empty
+    for node in sumnodes
+        if mapreduce(ch -> [scope(ch)], setdiff, node.children) != []
+            return false
+        end
+    end
+    true
+end
