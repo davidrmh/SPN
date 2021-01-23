@@ -50,3 +50,21 @@ function createmixture(parameters::Array{Any, 1})
     sig = [parameters[9], parameters[7], parameters[5]]
     normalmixture(weights, mu, sig)
 end
+
+"""
+    loglike(spn::AbstractNode, data::DataFrame)
+Compute the loglikelihood of a SPN over some data
+
+# Arguments
+- `spn::AbstractNode` Root node of the SPN
+- `data::DataFrame` Data
+"""
+function loglike(spn::AbstractNode, data::DataFrame)
+    #Observations (as named tuples)
+    obs = createnamedtuples(data)
+    logl = 0
+    for e in obs
+        logl = logl + log(pdf(spn, e))
+    end
+    logl
+end
