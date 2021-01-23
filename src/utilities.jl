@@ -109,3 +109,22 @@ function dotfile(node::AbstractNode, filename = "my_spn.gv"::String)
         write(io, str)
     end
 end
+
+"""
+    createnamedtuples(data::DataFrame)
+
+Create an array with named tuples using  the DataFrame `data`.
+Each key in the tuple correspon to the name of a column in `data`.
+
+# Arguments
+- `data::DataFrame` DataFrame object.
+"""
+function createnamedtuples(data::DataFrame)
+    keys = Symbol.(names(data))
+    arraytup = []
+    for row in eachrow(data)
+        tup = (; zip(keys, row)...)
+        push!(arraytup, tup)
+    end
+    arraytup
+end
