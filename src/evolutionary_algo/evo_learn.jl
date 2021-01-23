@@ -48,7 +48,10 @@ function createmixture(parameters::Array{Any, 1})
     weights = parameters[1:3]
     mu = [parameters[8], parameters[6], parameters[4]]
     sig = [parameters[9], parameters[7], parameters[5]]
-    normalmixture(weights, mu, sig)
+    spn = normalmixture(weights, mu, sig)
+    #Normalize SPN
+    normalize!(spn)
+    spn
 end
 
 """
