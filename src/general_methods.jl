@@ -355,3 +355,34 @@ function sample(root::AbstractNode, size::Int64)
     #Convert to DataFrame
     DataFrame(dict_all)
 end
+
+"""
+    getparameters(spn::AbstractNode)
+Get the parameters from a SPN
+Return a one dimensional array with all the weights and distribution parameters
+and a one dimensional array with the id of the node associated to i-th element
+in the first returned array.
+
+# Arguments
+- `spn::AbstractNode` Root node of the SPN.
+"""
+function getparameters(spn::AbstractNode)
+    #Get sum nodes
+    sumnodes = filter_by_type(spn, SumNode)
+    parameters = []
+    ids = []
+    #Add weights
+    for node in sumnodes
+        weights = node.weights
+        push!(parameters, weights...)
+        push!(ids, repeat(node.id:node.id, length(weights))... )
+    end
+    #Get distribution nodes
+    distnodes = filter_by_type(spn, LeafNode)
+    for node in distnodes
+        iterator = Base.Iterators.flatten(params(node.distribution))
+        push!(parameters, iterator...)
+        push!(ids, repeat(node.id:node.id, length([iterator...]))... )
+    end
+    parameters, ids
+end
