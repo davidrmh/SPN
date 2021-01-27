@@ -358,10 +358,13 @@ end
 
 """
     getparameters(spn::AbstractNode)
-Get the parameters from a SPN
-Return a one dimensional array with all the weights and distribution parameters
-and a one dimensional array with the id of the node associated to i-th element
-in the first returned array.
+Get the parameters from a SPN.
+
+Return a dictionary with keys the id of each node in the SPN and values
+the parameters of the node (only sum and leaf nodes have parameters).
+
+Also, return a dictionary with keys the id of each node in the SPN and values
+the type of node. If the node is a LeafNode, then the type of the distribution.
 
 # Arguments
 - `spn::AbstractNode` Root node of the SPN.
@@ -369,20 +372,18 @@ in the first returned array.
 function getparameters(spn::AbstractNode)
     #Get sum nodes
     sumnodes = filter_by_type(spn, SumNode)
-    parameters = []
-    ids = []
+    dict_params = Dict()
+    dict_types = Dict()
     #Add weights
     for node in sumnodes
-        weights = node.weights
-        push!(parameters, weights...)
-        push!(ids, repeat(node.id:node.id, length(weights))... )
+        dict_params[node.id] = node.weights
+        dict_types[node.id] = typeof(node)
     end
     #Get distribution nodes
     distnodes = filter_by_type(spn, LeafNode)
     for node in distnodes
-        iterator = Base.Iterators.flatten(params(node.distribution))
-        push!(parameters, iterator...)
-        push!(ids, repeat(node.id:node.id, length([iterator...]))... )
+        dict_params[node.id] = [params(node.distribution)...]
+        dict_types[node.id] = typeof(node.distribution)
     end
-    parameters, ids
+    dict_params, dict_types
 end

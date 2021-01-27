@@ -3,12 +3,22 @@ Methods for sum nodes
 ========================================#
 
 """
-Evaluates the pdf of a sum node s for the value x
+    pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+
+Evaluate the pdf of a sum node.
+# Arguments
+- `s::SumNode` A SumNode object.
+
+- `data::Union{Real, AbstractArray, NamedTuple}` Data.
+
+- `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
+Useful por calculating the gradients with Zygote.
 """
-function pdf(s::SumNode, x::Union{Real, AbstractArray, NamedTuple})
+function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
     value = 0
     for i in eachindex(s.children)
-        value = value + s.weights[i] * pdf(s.children[i], x)
+        #params[s.id] stores the weights
+        value = value + params[s.id][i] * pdf(s.children[i], data, params)
     end
     value
 end

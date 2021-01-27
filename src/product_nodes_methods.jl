@@ -3,12 +3,23 @@ Methods for Product nodes
 ========================================#
 
 """
-Evaluate the pdf of a product node p for the value x
+    pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+
+Evaluate the pdf of a product node.
+
+# Arguments
+- `p::ProductNode` A ProductNode object.
+
+- `data::Union{Real, AbstractArray, NamedTuple}` Data.
+
+- `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
+Useful por calculating the gradients with Zygote.
+
 """
-function pdf(p::ProductNode, x::Union{Real, AbstractArray, NamedTuple})
+function pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
     value = 1
     for i in eachindex(p.children)
-        value = value * pdf(p.children[i], x)
+        value = value * pdf(p.children[i], data, params)
     end
     value
 end
