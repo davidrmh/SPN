@@ -67,3 +67,37 @@ function independent(num_var = 3)
     end
     return root
 end
+
+function example1()
+    root = SumNode([], [], [1/3, 1/3, 1/3])
+    p1 = ProductNode([], [])
+    p2 = ProductNode([], [])
+    p3 = ProductNode([], [])
+
+    s1 = SumNode([], [], [0.5, 0.5])
+    s2 = SumNode([], [], [0.5, 0.5])
+    s3 = SumNode([], [], [0.5, 0.5])
+    s4 = SumNode([], [], [0.5, 0.5])
+
+    d1 = IndicatorNode([], :X1_1)
+    d2 = IndicatorNode([], :X1_0)
+    d3 = IndicatorNode([], :X2_1)
+    d4 = IndicatorNode([], :X2_0)
+    d5 = IndicatorNode([], :X1_1)
+    d6 = IndicatorNode([], :X1_0)
+    d7 = IndicatorNode([], :X2_1)
+    d8 = IndicatorNode([], :X2_0)
+
+    #Connect
+    addchildren!(root, [p1, p2, p3])
+    addchildren!(p1, [s1, s2])
+    addchildren!(p2, [s2, s3])
+    addchildren!(p3, [s3, s4])
+    addchildren!(s1, [d1, d2])
+    addchildren!(s2, [d3, d4])
+    addchildren!(s3, [d5, d6])
+    addchildren!(s4, [d7, d8])
+
+    return root
+
+end
