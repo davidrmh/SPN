@@ -3,12 +3,12 @@ Methods for Product nodes
 ========================================#
 
 """
-pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+    pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
 
-Evaluate the pdf of a product node. Return a positive number.
+Evaluate the pdf of a product node.
 
 # Arguments
-- `s::ProductNode` A ProductNode object.
+- `p::ProductNode` A ProductNode object.
 
 - `data::Union{Real, AbstractArray, NamedTuple}` Data.
 

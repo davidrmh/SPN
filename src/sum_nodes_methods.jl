@@ -5,8 +5,7 @@ Methods for sum nodes
 """
     pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
 
-Evaluate the pdf of a sum node. Return a positive number.
-
+Evaluate the pdf of a sum node.
 # Arguments
 - `s::SumNode` A SumNode object.
 
