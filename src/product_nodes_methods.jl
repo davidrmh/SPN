@@ -10,16 +10,16 @@ Evaluate the pdf of a product node.
 # Arguments
 - `p::ProductNode` A ProductNode object.
 
-- `data::Union{Real, AbstractArray, NamedTuple}` Data.
+- `data::Union{Real, AbstractArray, NamedTuple, DataFrame}` Data.
 
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
 
 """
-function pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+function pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
     value = 1
     for i in eachindex(p.children)
-        value = value * pdf(p.children[i], data, params)
+        value = value .* pdf(p.children[i], data, params)
     end
     value
 end

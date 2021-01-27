@@ -14,11 +14,11 @@ Evaluate the pdf of a sum node.
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
 """
-function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
     value = 0
     for i in eachindex(s.children)
         #params[s.id] stores the weights
-        value = value + params[s.id][i] * pdf(s.children[i], data, params)
+        value = value .+ params[s.id][i] .* pdf(s.children[i], data, params)
     end
     value
 end

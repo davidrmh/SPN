@@ -2,22 +2,29 @@
 Methods for Leaf nodes
 ========================================#
 """
-    pdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+    pdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
 
 Evaluate the pdf of a leaf node.
 
 # Arguments
 - `d::LeafNode` A LeafNode (Distribution or Indicator node) object.
 
-- `data::Union{Real, AbstractArray, NamedTuple}` Data.
+- `data::Union{Real, AbstractArray, NamedTuple, DataFrame}` Data.
 
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
 
 """
-function pdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
-    value = isa(data, NamedTuple) ? data[d.varname] : data
-    Distributions.pdf(typeof(d.distribution)(params[d.id]...), value)
+function pdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
+    if isa(data, DataFrame)
+        vals = data[!, d.varname]
+    #Array with named tuples
+    elseif isa(data[1], NamedTuple)
+        vals = [tup[d.varname] for tup in data]
+    else isa(data, NamedTuple)
+        vals = data[d.varname]
+    end
+    Distributions.pdf.(typeof(d.distribution)(params[d.id]...), vals)
 end
 
 """
@@ -38,8 +45,4 @@ function sample!(node::LeafNode, dict::Dict{Any, Any})
         r = Distributions.rand(node.distribution, 1)[1]
         dict[node.varname] = r
     end
-end
-
-function getparameters(dist::Normal, logspace = true::Bool)
-    par = [params(dist)...]
 end
