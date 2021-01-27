@@ -382,7 +382,7 @@ function getparameters(spn::AbstractNode)
     #Get distribution nodes
     distnodes = filter_by_type(spn, LeafNode)
     for node in distnodes
-        dict_params[node.id] = params(node.distribution)
+        dict_params[node.id] = [params(node.distribution)...]
         dict_types[node.id] = typeof(node.distribution)
     end
     dict_params, dict_types
