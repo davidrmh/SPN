@@ -357,7 +357,7 @@ function sample(root::AbstractNode, size::Int64)
 end
 
 """
-    getparameters(spn::AbstractNode)
+    getparameters(spn::AbstractNode, logspace::Bool)
 Get the parameters from a SPN.
 
 Return a dictionary with keys the id of each node in the SPN and values
@@ -368,21 +368,26 @@ the type of node. If the node is a LeafNode, then the type of the distribution.
 
 # Arguments
 - `spn::AbstractNode` Root node of the SPN.
+
+- `logspace::Bool` Indicates if the parameters should be transformed into
+the log space (true).
 """
-function getparameters(spn::AbstractNode)
+function getparameters(spn::AbstractNode, logspace::Bool)
     #Get sum nodes
     sumnodes = filter_by_type(spn, SumNode)
     dict_params = Dict()
     dict_types = Dict()
     #Add weights
     for node in sumnodes
-        dict_params[node.id] = node.weights
+        dict_params[node.id] = logspace ? log.(node.weights) : node.weights
         dict_types[node.id] = typeof(node)
     end
     #Get distribution nodes
     distnodes = filter_by_type(spn, LeafNode)
     for node in distnodes
-        dict_params[node.id] = [params(node.distribution)...]
+        par = [params(node.distribution)...]
+        par = logspace ? tologspace(node.distribution, par) : par
+        dict_params[node.id] = par
         dict_types[node.id] = typeof(node.distribution)
     end
     dict_params, dict_types
