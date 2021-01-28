@@ -37,17 +37,26 @@ function initializepopulation(popsize = 50::Int64)
 end
 
 """
-    createmixture(parameters::Array{Any, 1})
-Create a SPN  representing a Gaussian mixture using the array `parameters`.
-
-# Argument
-- `parameters::Array{Any, 1}` Array with the parameters.
+Create a mixture for the given parameters
+logspace is true if the parameters are in the logspace
 """
-function createmixture(parameters::Array{<:Any, 1})
-    #Order is crucial
-    weights = parameters[1:3]
-    mu = [parameters[8], parameters[6], parameters[4]]
-    sig = [parameters[9], parameters[7], parameters[5]]
+function createmixture(params::Dict{Any, Any}, types::Dict{Any, Any}, logspace::Bool)
+    weights = []
+    mu = []
+    sig = []
+
+    for key in keys(params)
+        if types[key] == SumNode
+            #If necessary change to positive space
+            w = logspace ? exp.(params[key]) : params[key]
+            push!(weights, w...)
+        elseif types[key] == Normal{Float64}
+            m, s = params[key]
+            s = logspace ? exp(s) : s
+            push!(mu, m)
+            push!(sig, s)
+        end
+    end
     spn = normalmixture(weights, mu, sig)
     #Normalize SPN
     normalize!(spn)
