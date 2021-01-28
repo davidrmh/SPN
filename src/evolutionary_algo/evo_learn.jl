@@ -125,6 +125,46 @@ function createcandidate(params1::Dict{Any, Any}, params2::Dict{Any, Any},
     end
     newparams, newtypes
 end
+
+"""
+Combine two candidate solutions
+Return a dictionary with the same keys as `params1`.
+`params1` and `params2` are expected to contain values in the logspace.
+"""
+function combinecandidates(params1::Dict{Any, Any}, params2::Dict{Any, Any},
+    types1::Dict{Any, Any}, types2::Dict{Any, Any}, crossrate::Float64)
+
+    newparams = Dict()
+    newtypes = Dict()
+    ty2 = [values(types2)...]
+    ky2 = [keys(types2)...]
+    memory = []
+    unif = Uniform(0, 1)
+    for key1 in keys(params1)
+        type1 = types1[key1]
+        for i in eachindex(ty2)
+            #If there is a type match
+            if ty2[i] == type1 && !(i in memory)
+                newtypes[key1] = type1
+                #Combine entries
+                newparams[key1] = zeros(length(params1[key1]))
+                for j in eachindex(params1[key1])
+                    u = rand(unif, 1)[1]
+                    if u < crossrate
+                        newparams[key1][j] = params2[ky2[i]][j]
+                    else
+                        newparams[key1][j] = params1[key1][j]
+                    end
+                end
+                #save in memory to avoid using the same `params2[ky2[i]]`
+                push!(memory, i)
+                break
+            end
+        end
+    end
+    newparams, newtypes
+end
+
 """
     loglike(spn::AbstractNode, data::DataFrame)
 Compute the loglikelihood of a SPN over some data
@@ -133,40 +173,15 @@ Compute the loglikelihood of a SPN over some data
 - `spn::AbstractNode` Root node of the SPN
 - `data::DataFrame` Data
 """
-function loglike(spn::AbstractNode, data::DataFrame)
-    #Observations (as named tuples)
-    obs = createnamedtuples(data)
-    logl = 0
-    for e in obs
-        logl = logl + log(pdf(spn, e))
-    end
-    logl
+function loglike(spn::AbstractNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any}, logspace::Bool)
+    sum(log.(pdf(spn, data, params, logspace)))
 end
 
 """
-Change parameters with positive value constraint to the log-space
+We want to maximize the score function
 """
-function tologspace(parameters::Array{<:Any, 1})
-    for i in [1, 2, 3, 5, 7, 9]
-        parameters[i] = log(parameters[i])
-    end
-    parameters
-end
-
-"""
-Change parameters in log-space into the positive-space
-"""
-function toposspace(parameters::Array{<:Any, 1})
-    for i in [1, 2, 3, 5, 7, 9]
-        parameters[i] = exp(parameters[i])
-    end
-    parameters
-end
-
-"""
-Score function takes 2 parameters. We want to maximize it.
-"""
-function differentialevolution(scorefun::Function, data::DataFrame;
+function differentialevolution(scorefun::Function, data::Union{Real, AbstractArray, NamedTuple, DataFrame};
     popsize= 50::Int64, numiter = 500::Int64, tol = 1e-6::Float64,
     stepsize = 0.65::Float64, crossrate = 0.55::Float64)
 
@@ -174,18 +189,25 @@ function differentialevolution(scorefun::Function, data::DataFrame;
     pop_spn = initializepopulation(popsize)
 
     #Parameters of each SPN
+    #The parameters will be in logspace
+    #and are representd with a dictionary
     pop_par = []
+    pop_types = []
     for spn in pop_spn
-        parameters, _ = getparameters(spn)
+        parameters, types = getparameters(spn, true)
         push!(pop_par, parameters)
+        push!(pop_types, types)
     end
 
     #Get the score of each SPN in the data
     scores = zeros(popsize)
     for i = 1:popsize
         spn = pop_spn[i]
-        scores[i] = scorefun(spn, data)
+        par = pop_par[i]
+        #parameters are in logspace
+        scores[i] = scorefun(spn, data, par, true)
     end
+
     #Best score
     agmax = argmax(scores)
     best_score = scores[agmax]
@@ -194,53 +216,47 @@ function differentialevolution(scorefun::Function, data::DataFrame;
     #Best SPN
     best_spn = pop_spn[agmax]
     best_spn_par = pop_par[agmax]
+    best_spn_types = pop_types[agmax]
 
     #Counter for iterations
     count_iter = 1
     indices = [1:popsize...]
-    #Dimension of each parameters vector
-    n = length(pop_par[1])
-    unif = Uniform(0, 1)
     while count_iter < numiter && abs(best_score - best_prev_score) > tol
         #For each individual in the population
         #Create a new one.
-        new_pop_par = [] #New population
+        new_pop_par = [] #New population of parameters
+        new_pop_types = [] #New population of types
         for i in indices
-            xi = tologspace(copy(pop_par[i]))
+            xi_par = deepcopy(pop_par[i])
+            xi_types = deepcopy(pop_types[i])
             r1 = rand(setdiff(indices, [i]), 1)[1]
             r2 = rand(setdiff(indices, [i, r1]), 1)[1]
             r3 = rand(setdiff(indices, [i, r1, r2]), 1)[1]
-            #mutant vector
-            xr1 = tologspace(copy(pop_par[r1]))
-            xr2 = tologspace(copy(pop_par[r2]))
-            xr3 = tologspace(copy(pop_par[r3]))
-            vi = xr1 .+ stepsize .* (xr2 .- xr3)
+            xr1_par = deepcopy(pop_par[r1])
+            xr1_types = deepcopy(pop_types[r1])
+            xr2_par = deepcopy(pop_par[r2])
+            xr2_types = deepcopy(pop_types[r2])
+            xr3_par = deepcopy(pop_par[r3])
+            xr3_types = deepcopy(pop_types[r3])
+            #Create a new candidate
+            #vi = xr1 .+ stepsize .* (xr2 .- xr3)
+            vi_par, vi_types = createcandidate(xr2_par, xr3_par, xr2_types, xr3_types, stepsize)
+            vi_par, vi_types = createcandidate(xr1_par, vi_par, xr1_types, vi_types)
+            vi_par, vi_types = combinecandidates(xi_par, vi_par, xi_types, vi_types, crossrate)
 
-            #Create new individual
-            jr = rand(1:n, 1)[1]
-            newind = zeros(n)
-            #Modify each dimension in newind
-            for j = 1:n
-                rcj = rand(unif, 1)[1]
-                if rcj < crossrate || j == jr
-                    newind[j] = vi[j]
-                else
-                    newind[j] = xi[j]
-                end #if
-            end #for j
-
-            #Change to positive-space and
-            #add to new population
-            newind = toposspace(newind)
-            push!(new_pop_par, newind)
+            push!(new_pop_par, vi_par)
+            push!(new_pop_types, vi_types)
         end #for i
 
         #Evaluate the new population
         scores_new = zeros(popsize)
         for i in 1:popsize
-            ind = new_pop_par[i]
-            spn = createmixture(ind)
-            scores_new[i] = scorefun(spn, data)
+            ind_par = new_pop_par[i]
+            ind_types = new_pop_types[i]
+            spn = createmixture(ind_par, ind_types, true)
+            #To avoid problems with the ids of each node
+            spn_par, spn_types = getparameters(spn, true)
+            scores_new[i] = scorefun(spn, data, spn_par, true)
         end
 
         #Keep the best SPNs
@@ -248,6 +264,7 @@ function differentialevolution(scorefun::Function, data::DataFrame;
             #Maximization problem
             if scores_new[i] > scores[i]
                 pop_par[i] = new_pop_par[i]
+                pop_types[i] = new_pop_types[i]
                 scores[i] = scores_new[i]
             end
         end
@@ -255,13 +272,14 @@ function differentialevolution(scorefun::Function, data::DataFrame;
         #Best SPN
         agmax = argmax(scores)
         best_spn_par = pop_par[agmax]
-        best_spn = createmixture(best_spn_par)
+        best_spn_types = pop_types[agmax]
+        best_spn = createmixture(best_spn_par, best_spn_types, true)
         best_prev_score = best_score
         best_score = scores[agmax]
 
         count_iter = count_iter + 1
 
-        if count_iter % 20 == 0
+        if count_iter % 100 == 0
             println("Iteration: $(count_iter). Best score: $(round(best_score, digits = 7))")
         end
     end #while
