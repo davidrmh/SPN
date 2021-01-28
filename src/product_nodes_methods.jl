@@ -3,7 +3,8 @@ Methods for Product nodes
 ========================================#
 
 """
-    pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+    pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple},
+    params::Dict{Any, Any})
 
 Evaluate the pdf of a product node.
 
@@ -15,11 +16,14 @@ Evaluate the pdf of a product node.
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
 
+- `logspace::Bool` Indicates if the parameters are in the log space (true) or
+in the original space (false).
 """
-function pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
+function pdf(p::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any}, logspace = false::Bool)
     value = 1
     for i in eachindex(p.children)
-        value = value .* pdf(p.children[i], data, params)
+        value = value .* pdf(p.children[i], data, params, logspace)
     end
     value
 end

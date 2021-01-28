@@ -3,7 +3,8 @@ Methods for sum nodes
 ========================================#
 
 """
-    pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple}, params::Dict{Any, Any})
+    pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple},
+    params::Dict{Any, Any}, logspace = false::Bool)
 
 Evaluate the pdf of a sum node.
 # Arguments
@@ -13,12 +14,22 @@ Evaluate the pdf of a sum node.
 
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
+
+- `logspace::Bool` Indicates if the parameters are in the log space (true) or
+in the original space (false).
 """
-function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}, params::Dict{Any, Any})
+function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any}, logspace = false::Bool)
     value = 0
     for i in eachindex(s.children)
         #params[s.id] stores the weights
-        value = value .+ params[s.id][i] .* pdf(s.children[i], data, params)
+        if logspace
+            #If parameters come from logspace
+            #return them to the original space
+            value = value .+ exp(params[s.id][i]) .* pdf(s.children[i], data, params, logspace)
+        else
+            value = value .+ params[s.id][i] .* pdf(s.children[i], data, params, logspace)
+        end
     end
     value
 end
