@@ -64,6 +64,39 @@ function createmixture(params::Dict{Any, Any}, types::Dict{Any, Any}, logspace::
 end
 
 """
+Create one candidate solution by subtracting and multiplying by `stepsize`.
+Return a dictionary with the same keys as `params1`.
+`params1` and `params2` are expected to contain values in the logspace.
+"""
+function createcandidate(params1::Dict{Any, Any}, params2::Dict{Any, Any},
+    types1::Dict{Any, Any}, types2::Dict{Any, Any}, stepsize::Float64)
+
+    newparams = Dict()
+    newtypes = Dict()
+    ty2 = [values(types2)...]
+    ky2 = [keys(types2)...]
+    memory = []
+    for key1 in keys(params1)
+        type1 = types1[key1]
+        for i in eachindex(ty2)
+            #If there is a type match
+            if ty2[i] == type1 && !(i in memory)
+                newparams[key1] = params1[key1] .- params2[ky2[i]]
+                newtypes[key1] = type1
+                #save in memory to avoid using the same `params2[ky2[i]]`
+                push!(memory, i)
+                break
+            end
+        end
+    end
+
+    #Multiply by `stepsize`
+    for key in keys(newparams)
+        newparams[key] = stepsize .* newparams[key]
+    end
+    newparams, newtypes
+end
+"""
     loglike(spn::AbstractNode, data::DataFrame)
 Compute the loglikelihood of a SPN over some data
 
