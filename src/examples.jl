@@ -101,3 +101,41 @@ function example1()
     return root
 
 end
+
+"""
+This example is to test the function collapseproducts!
+It creates a SPN that is nor decomposable nor complete.
+"""
+function chainproducts()
+    #Root
+    n1 = SumNode([], [undef], [1/3, 1/3, 1/3])
+    n2 = ProductNode([], [])
+    n3 = ProductNode([], [])
+    n4 = ProductNode([], [])
+    n5 = ProductNode([], [])
+    n6 = ProductNode([], [])
+    n7 = ProductNode([], [])
+    n8 = ProductNode([], [])
+    n9 = ProductNode([], [])
+    n10 = IndicatorNode([], :X1)
+    n11 = IndicatorNode([], :X1)
+    n12 = IndicatorNode([], :X1)
+    n13 = IndicatorNode([], :X1)
+    n14 = IndicatorNode([], :X1)
+    n15 = IndicatorNode([], :X1)
+    n16 = IndicatorNode([], :X1)
+    n17 = IndicatorNode([], :X1)
+    n18 = IndicatorNode([], :X1)
+
+    #Connect
+    addchildren!(n1, [n2, n3, n5])
+    addchildren!(n2, [n4])
+    addchildren!(n3, [n6, n7])
+    addchildren!(n4, [n10])
+    addchildren!(n5, [n4, n6])
+    addchildren!(n6, [n11, n12])
+    addchildren!(n7, [n13, n14])
+    addchildren!(n8, [n15, n16])
+    addchildren!(n9, [n17, n18])
+    n1
+end
