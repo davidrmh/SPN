@@ -199,3 +199,36 @@ function dismiss!(root::AbstractNode, varname::Symbol, targetlist::Array)
         end
     end
 end
+
+"""
+    shortwire!(root::AbstractNode)
+For all sum and product nodes, N, that only have one child C, connect the
+parents of N as parents of C and delete N.
+This function is the ShortWire function (Algorithm 3) from
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+
+The modification is done in-place.
+
+# Arguments
+- `root::AbstractNode` Ideally the root node of the SPN.
+"""
+function shortwire!(root::AbstractNode)
+    #Get the sum and product nodes
+    nodes = filter_by_type(root, Union{SumNode, ProductNode})
+
+    for n in nodes
+        #If has only a child
+        if length(n.children) == 1
+            child = n.children[1]
+            #add child to each parent of the node n
+            for parent in n.parents
+                #Check if node n is not the root node
+                if parent != undef
+                    addchildren!(parent, [child])
+                end
+            end
+            #Delete node n
+            delete!(n)
+        end
+    end
+end
