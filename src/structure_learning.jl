@@ -232,3 +232,30 @@ function shortwire!(root::AbstractNode)
         end
     end
 end
+
+"""
+    getchainproduct(start::ProductNode)
+Get a chain of product nodes starting in the node `start`.
+Return an array with the product nodes forming the chain.
+The first element of this chain is the `start` node.
+
+# Arguments
+- `start::ProductNode` Product node where the search starts.
+"""
+function getchainproduct(start::ProductNode)
+    #To store the chain
+    chain = [start]
+    #To store the nodes to be explored
+    explore = [start]
+
+    while explore != []
+        node = pop!(explore)
+        for child in node.children
+            if isa(child, ProductNode)
+                push!(chain, child)
+                push!(explore, child)
+            end
+        end
+    end
+    chain
+end
