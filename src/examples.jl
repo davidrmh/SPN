@@ -69,7 +69,7 @@ function independent(num_var = 3)
 end
 
 function example1()
-    root = SumNode([], [], [1/3, 1/3, 1/3])
+    root = SumNode([], [undef], [1/3, 1/3, 1/3])
     p1 = ProductNode([], [])
     p2 = ProductNode([], [])
     p3 = ProductNode([], [])
