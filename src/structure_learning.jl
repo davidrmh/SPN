@@ -259,3 +259,39 @@ function getchainproduct(start::ProductNode)
     end
     chain
 end
+
+"""
+    reducechain!(chain::Array{ProductNode, 1})
+Reduce a chain of products node contained in the array `chain`.
+This array is created with the function `getchainproduct`.
+
+reducechain! modifies the nodes in `chain` in-place.
+
+# Arguments
+- `chain::Array{ProductNode, 1}` Array of product nodes that form the chain.
+
+For each node `chain[k]` with `k > 1`, its children are added to
+`chain[1].children`. If `chain[k]` is children of `chain[1]`, then these
+nodes get disconnected.
+"""
+
+function reducechain!(chain::Array{ProductNode, 1})
+    start = chain[1]
+    m = length(chain)
+    for i in 2:m
+        node = chain[i]
+        #Coonect each child (not a product node) from node to start
+        for child in node.children
+            if !isa(child, ProductNode) && !(child in start.children)
+                addchildren!(start, [child])
+            end
+        end
+
+        #Disconnect node from start if node is a child of start
+        #Not using delete! since this might affect other nodes depending
+        #on node
+        if node in start.children
+            disconnect!(start, node)
+        end
+    end
+end
