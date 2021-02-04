@@ -274,7 +274,6 @@ For each node `chain[k]` with `k > 1`, its children are added to
 `chain[1].children`. If `chain[k]` is children of `chain[1]`, then these
 nodes get disconnected.
 """
-
 function reducechain!(chain::Array{ProductNode, 1})
     start = chain[1]
     m = length(chain)
@@ -293,5 +292,37 @@ function reducechain!(chain::Array{ProductNode, 1})
         if node in start.children
             disconnect!(start, node)
         end
+    end
+end
+
+"""
+    collapseproducts!(root::AbstractNode)
+
+Combine chains of product nodes to a single product node.
+
+This function is the CollapseProducts function (Algorithm 3) from
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+
+The modification is done in-place.
+
+# Arguments
+- `root::AbstractNode` Root node of the SPN.
+"""
+function collapseproducts!(root::AbstractNode)
+    #Get product nodes
+    prodnodes = filter_by_type(root, ProductNode)
+
+    #Get the chain for each productnode
+    chains = map(getchainproduct, prodnodes)
+
+    #Calculate the length of each chain
+    lengthchains = map(length, chains)
+
+    #Reduce while there is a chain that can be reduced
+    while any(lengthchains .> 1)
+        map(reducechain!, chains)
+        prodnodes = filter_by_type(root, ProductNode)
+        chains = map(getchainproduct, prodnodes)
+        lengthchains = map(length, chains)
     end
 end
