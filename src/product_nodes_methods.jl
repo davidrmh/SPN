@@ -44,3 +44,13 @@ function sample!(node::ProductNode, dict::Dict{Any, Any})
         sample!(child, dict)
     end
 end
+
+"""
+    logpdf(node::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+        params::Dict{Any, Any})
+
+"""
+function logpdf(node::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any})
+    sum( map( child -> logpdf(child, data, params), node.children ) )
+end

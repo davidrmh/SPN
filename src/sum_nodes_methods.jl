@@ -89,3 +89,24 @@ function sample!(node::SumNode, dict::Dict{Any, Any})
     idx = Distributions.rand(z, 1)[1]
     sample!(node.children[idx], dict)
 end
+"""
+    logpdf(node::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+        params::Dict{Any, Any})
+
+"""
+function logpdf(node::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any})
+
+    #log of each weight
+    logweights = log.(params[node.id])
+
+    #logpdf of each children
+    logchildren = map(child -> logpdf(child, data, params), node.children)
+    #Convert into a num_children x num_observations array
+    logchildren = transpose( hcat(logchildren...) )
+
+    #Apply (stable) logsumexp
+    plus = logweights .+ logchildren
+    m = maximum(plus, dims = 1)
+    m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
+end

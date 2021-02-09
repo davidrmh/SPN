@@ -25,8 +25,8 @@ function pdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame
     #Array with named tuples
     elseif isa(data[1], NamedTuple)
         vals = [tup[d.varname] for tup in data]
-    else isa(data, NamedTuple)
-        vals = data[d.varname]
+    else
+        vals = data
     end
     #If parameters come from the logspace
     #return them to the original space
@@ -95,4 +95,24 @@ function topositivespace(dist::Normal{Float64}, par::AbstractArray)
     #For the normal distribution the
     #second parameter in `par` is the standard deviation
     [par[1], exp(par[2])]
+end
+
+"""
+    logpdf(node::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+        params::Dict{Any, Any})
+
+"""
+function logpdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
+    params::Dict{Any, Any})
+
+    #Get the data
+    if isa(data, DataFrame)
+        vals = data[!, d.varname]
+    #Array with named tuples
+    elseif isa(data[1], NamedTuple)
+        vals = [tup[d.varname] for tup in data]
+    else
+        vals = data
+    end
+    Distributions.logpdf.(typeof(d.distribution)(params[d.id]...), vals)
 end
