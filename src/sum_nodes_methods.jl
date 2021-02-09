@@ -10,7 +10,7 @@ Evaluate the pdf of a sum node.
 # Arguments
 - `s::SumNode` A SumNode object.
 
-- `data::Union{Real, AbstractArray, NamedTuple}` Data.
+- `data::Union{Real, AbstractArray, NamedTuple, DataFrame}` Data.
 
 - `params::Dict{Any, Any}` Dictionary created with the function `getparameters`.
 Useful por calculating the gradients with Zygote.
