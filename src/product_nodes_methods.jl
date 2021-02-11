@@ -46,11 +46,32 @@ function sample!(node::ProductNode, dict::Dict{Any, Any})
 end
 
 """
-    logpdf(node::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-        params::Dict{Any, Any})
+    logpdf(node::ProductNode, data::DataFrame, params::Dict{Any, Any})
 
+Calculate the logpdf of a product node.
+
+Return an array with dimension 1 x size(data)[1]. That is, an array of size
+1 x number of observations in the dataset.
+
+# Arguments
+- `node::ProductNode` A product node.
+
+- `data::DataFrame` Data frame with the observations. The column used is the
+one that contains the header corresponding to the field `node.varname`.
+
+- `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
+created with the function `getparameters`.
 """
-function logpdf(node::ProductNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-    params::Dict{Any, Any})
-    sum( map( child -> logpdf(child, data, params), node.children ) )
+function logpdf(node::ProductNode, data::DataFrame, params::Dict{Any, Any})
+
+    #logpdf of each children
+    logchildren = []
+    for i in eachindex(node.children)
+        childlogpdf = logpdf(node.children[i], data, params)
+        push!(logchildren, [childlogpdf...])
+    end
+    #Array of n_children X n_obs
+    logchildren = transpose(reduce(hcat, logchildren))
+    #Array of 1 x n_obs
+    sum(logchildren, dims = 1)
 end

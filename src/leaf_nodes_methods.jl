@@ -98,12 +98,23 @@ function topositivespace(dist::Normal{Float64}, par::AbstractArray)
 end
 
 """
-    logpdf(node::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-        params::Dict{Any, Any})
+    logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
 
+Calculate the logpdf of a leaf node.
+
+Return an array with dimension 1 x size(data)[1]. That is, an array of size
+1 x number of observations in the dataset.
+
+# Arguments
+- `d::LeafNode` A leaf node.
+
+- `data::DataFrame` Data frame with the observations. The column used is the
+one that contains the header corresponding to the field `d.varname`.
+
+- `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
+created with the function `getparameters`.
 """
-function logpdf(d::LeafNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-    params::Dict{Any, Any})
+function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
 
     #Get the data
     if isa(data, DataFrame)

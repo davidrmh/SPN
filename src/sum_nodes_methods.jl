@@ -90,21 +90,35 @@ function sample!(node::SumNode, dict::Dict{Any, Any})
     sample!(node.children[idx], dict)
 end
 """
-    logpdf(node::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-        params::Dict{Any, Any})
+    logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
 
+Calculate the logpdf of a sum node, applying the logsumexp trick.
+
+Return an array with dimension 1 x size(data)[1]. That is, an array of size
+1 x number of observations in the dataset.
+
+# Arguments
+- `node::SumNode` A sum node.
+
+- `data::DataFrame` Data frame with the observations. The column used is the
+one that contains the header corresponding to the field `node.varname`.
+
+- `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
+created with the function `getparameters`.
 """
-function logpdf(node::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame},
-    params::Dict{Any, Any})
+function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
 
     #log of each weight
     logweights = log.(params[node.id])
 
     #logpdf of each children
-    logchildren = map(child -> logpdf(child, data, params), node.children)
-    #Convert into a num_children x num_observations array
-    logchildren = transpose( hcat(logchildren...) )
-
+    logchildren = []
+    for i in eachindex(node.children)
+        childlogpdf = logpdf(node.children[i], data, params)
+        push!(logchildren, [childlogpdf...])
+    end
+    #array of n_children X n_obs
+    logchildren = transpose(reduce(hcat, logchildren))
     #Apply (stable) logsumexp
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
