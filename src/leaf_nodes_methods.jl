@@ -127,3 +127,53 @@ function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
     end
     Distributions.logpdf.(typeof(d.distribution)(params[d.id]...), vals)
 end
+
+"""
+    logpdf(d::LeafNode, data::DataFrame,
+    params::Dict{Any, Any}, memory::Dict{Any, Any})
+
+Calculate the logpdf of a leaf node.
+
+Return an array with dimension 1 x size(data)[1]. That is, an array of size
+1 x number of observations in the dataset.
+
+Modify `in-place` the dictionary `memory`.
+
+This `logpdf!` is faster than `logpdf`.
+
+# Arguments
+- `d::LeafNode` A leaf node.
+
+- `data::DataFrame` Data frame with the observations. The column used is the
+one that contains the header corresponding to the field `d.varname`.
+
+- `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
+created with the function `getparameters`.
+
+- `memory::Dict{Any, Any}` Dictionary that stores the logpdf of each node.
+Each key corresponds to the `id` field associated to a particular node.
+The value is the logpdf of the corresponding node.
+"""
+function logpdf!(node::LeafNode, data::DataFrame,
+    params::Dict{Any, Any}, memory::Dict{Any, Any})
+
+    #If the logpdf for `node` has been calculated
+    #use the stored value
+    if haskey(memory, node.id)
+        return memory[node.id]
+    end
+
+    #Get the data
+    if isa(data, DataFrame)
+        vals = data[!, node.varname]
+    #Array with named tuples
+    elseif isa(data[1], NamedTuple)
+        vals = [tup[node.varname] for tup in data]
+    else
+        vals = data
+    end
+    nodelogpdf = Distributions.logpdf.(typeof(node.distribution)(params[node.id]...), vals)
+    #Add to memory
+    memory[node.id] = nodelogpdf
+    nodelogpdf
+end

@@ -124,3 +124,61 @@ function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
     m = maximum(plus, dims = 1)
     m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
 end
+
+"""
+    logpdf!(node::SumNode, data::DataFrame,
+    params::Dict{Any, Any}, memory::Dict{Any, Any})
+
+Calculate the logpdf of a sum node, applying the logsumexp trick.
+
+Return an array with dimension 1 x size(data)[1]. That is, an array of size
+1 x number of observations in the dataset.
+
+Modify `in-place` the dictionary `memory`.
+
+This `logpdf!` is faster than `logpdf`.
+
+# Arguments
+- `node::SumNode` A sum node.
+
+- `data::DataFrame` Data frame with the observations. The column used is the
+one that contains the header corresponding to the field `node.varname`.
+
+- `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
+created with the function `getparameters`.
+
+- `memory::Dict{Any, Any}` Dictionary that stores the logpdf of each node.
+Each key corresponds to the `id` field associated to a particular node.
+The value is the logpdf of the corresponding node.
+"""
+function logpdf!(node::SumNode, data::DataFrame,
+    params::Dict{Any, Any}, memory::Dict{Any, Any})
+
+    #If the logpdf for `node` has been calculated
+    #use the stored value
+    if haskey(memory, node.id)
+        return memory[node.id]
+    end
+
+    #log of each weight
+    logweights = log.(params[node.id])
+
+    #logpdf of each children
+    logchildren = []
+    for i in eachindex(node.children)
+        child = node.children[i]
+        #Calculate the child's logpdf if it hasn't been
+        #previously calculated
+        childlogpdf = !haskey(memory, child.id) ? logpdf!(child, data, params, memory) : memory[child.id]
+        push!(logchildren, [childlogpdf...])
+    end
+    #array of n_children X n_obs
+    logchildren = transpose(reduce(hcat, logchildren))
+    #Apply (stable) logsumexp
+    plus = logweights .+ logchildren
+    m = maximum(plus, dims = 1)
+    nodelogpdf = m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
+    #Add to memory
+    memory[node.id] = nodelogpdf
+    nodelogpdf
+end
