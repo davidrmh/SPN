@@ -90,7 +90,8 @@ function sample!(node::SumNode, dict::Dict{Any, Any})
     sample!(node.children[idx], dict)
 end
 """
-    logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
+    logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any},
+    margvar=[:none]::Array{Symbol, 1})
 
 Calculate the logpdf of a sum node, applying the logsumexp trick.
 
@@ -105,8 +106,12 @@ one that contains the header corresponding to the field `node.varname`.
 
 - `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
 created with the function `getparameters`.
+
+- `margvar=[:none]::Array{Symbol, 1}` Array with the symbols of the variables
+to be marginalized.
 """
-function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
+function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any},
+    margvar=[:none]::Array{Symbol, 1})
 
     #log of each weight
     logweights = log.(params[node.id])
@@ -114,7 +119,7 @@ function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any})
     #logpdf of each children
     logchildren = []
     for i in eachindex(node.children)
-        childlogpdf = logpdf(node.children[i], data, params)
+        childlogpdf = logpdf(node.children[i], data, params, margvar)
         push!(logchildren, [childlogpdf...])
     end
     #array of n_children X n_obs
@@ -127,7 +132,7 @@ end
 
 """
     logpdf!(node::SumNode, data::DataFrame,
-    params::Dict{Any, Any}, memory::Dict{Any, Any})
+    params::Dict{Any, Any}, memory::Dict{Any, Any}, margvar=[:none]::Array{Symbol, 1})
 
 Calculate the logpdf of a sum node, applying the logsumexp trick.
 
@@ -150,9 +155,12 @@ created with the function `getparameters`.
 - `memory::Dict{Any, Any}` Dictionary that stores the logpdf of each node.
 Each key corresponds to the `id` field associated to a particular node.
 The value is the logpdf of the corresponding node.
+
+- `margvar=[:none]::Array{Symbol, 1}` Array with the symbols of the variables
+to be marginalized.
 """
 function logpdf!(node::SumNode, data::DataFrame,
-    params::Dict{Any, Any}, memory::Dict{Any, Any})
+    params::Dict{Any, Any}, memory::Dict{Any, Any}, margvar=[:none]::Array{Symbol, 1})
 
     #If the logpdf for `node` has been calculated
     #use the stored value
@@ -169,7 +177,8 @@ function logpdf!(node::SumNode, data::DataFrame,
         child = node.children[i]
         #Calculate the child's logpdf if it hasn't been
         #previously calculated
-        childlogpdf = !haskey(memory, child.id) ? logpdf!(child, data, params, memory) : memory[child.id]
+        childlogpdf = !haskey(memory, child.id) ?
+        logpdf!(child, data, params, memory, margvar) : memory[child.id]
         push!(logchildren, [childlogpdf...])
     end
     #array of n_children X n_obs

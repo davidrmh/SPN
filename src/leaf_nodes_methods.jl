@@ -98,7 +98,8 @@ function topositivespace(dist::Normal{Float64}, par::AbstractArray)
 end
 
 """
-    logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
+    logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any},
+    margvar=[:none]::Array{Symbol, 1})
 
 Calculate the logpdf of a leaf node.
 
@@ -113,8 +114,19 @@ one that contains the header corresponding to the field `d.varname`.
 
 - `params::Dict{Any, Any}` Dictionary with the parameters. This dictionary is
 created with the function `getparameters`.
+
+- `margvar=[:none]::Array{Symbol, 1}` Array with the symbols of the variables
+to be marginalized.
 """
-function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
+function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any},
+    margvar=[:none]::Array{Symbol, 1})
+
+    #If the `node.varname` is in `margvar`
+    #marginalizes the variable
+    if d.varname in margvar
+        nobs = size(data)[1]
+        return zeros(nobs)
+    end
 
     #Get the data
     if isa(data, DataFrame)
@@ -129,8 +141,8 @@ function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any})
 end
 
 """
-    logpdf(d::LeafNode, data::DataFrame,
-    params::Dict{Any, Any}, memory::Dict{Any, Any})
+    logpdf!(d::LeafNode, data::DataFrame,
+    params::Dict{Any, Any}, memory::Dict{Any, Any}, margvar=[:none]::Array{Symbol, 1})
 
 Calculate the logpdf of a leaf node.
 
@@ -153,14 +165,24 @@ created with the function `getparameters`.
 - `memory::Dict{Any, Any}` Dictionary that stores the logpdf of each node.
 Each key corresponds to the `id` field associated to a particular node.
 The value is the logpdf of the corresponding node.
+
+- `margvar=[:none]::Array{Symbol, 1}` Array with the symbols of the variables
+to be marginalized.
 """
 function logpdf!(node::LeafNode, data::DataFrame,
-    params::Dict{Any, Any}, memory::Dict{Any, Any})
+    params::Dict{Any, Any}, memory::Dict{Any, Any}, margvar=[:none]::Array{Symbol, 1})
 
     #If the logpdf for `node` has been calculated
     #use the stored value
     if haskey(memory, node.id)
         return memory[node.id]
+    end
+
+    #If the `node.varname` is in `margvar`
+    #marginalizes the variable
+    if node.varname in margvar
+        nobs = size(data)[1]
+        return zeros(nobs)
     end
 
     #Get the data
