@@ -392,3 +392,41 @@ function getparameters(spn::AbstractNode, logspace::Bool)
     end
     dict_params, dict_types
 end
+
+"""
+    ascendants(node::AbstractNode)
+
+Get the asscendants of a node.
+Return an array with nodes.
+Important: This function assumes that a node is
+its own ascendant.
+
+# Arguments
+- `node::AbstractNode` A node <: AbstractNode.
+"""
+function ascendants(node::AbstractNode)
+    #To store the ascendants
+    asc = []
+    #A now is its own ascendant
+    push!(asc, node)
+
+    #Root nodes have no ascendants
+    if node.parents == [undef]
+        return asc
+    end
+    #Nodes to explore
+    explore = copy(node.parents)
+
+    while explore != []
+        #DFS search
+        parent = popfirst!(explore)
+
+        #Add parent to `asc` if it hasn't been added
+        !(parent in asc) ? push!(asc, parent) : nothing
+
+        #Add parent's parents to continue exploration
+        #Only for non-root nodes
+        parent.parents != [undef] ? pushfirst!(explore, copy(parent.parents)...) : nothing
+    end
+    asc
+end
