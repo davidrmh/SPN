@@ -128,15 +128,8 @@ function logpdf(d::LeafNode, data::DataFrame, params::Dict{Any, Any},
         return zeros(nobs)
     end
 
-    #Get the data
-    if isa(data, DataFrame)
-        vals = data[!, d.varname]
-    #Array with named tuples
-    elseif isa(data[1], NamedTuple)
-        vals = [tup[d.varname] for tup in data]
-    else
-        vals = data
-    end
+    #Get the data for the corresponding column
+    vals = data[!, d.varname]
     Distributions.logpdf.(typeof(d.distribution)(params[d.id]...), vals)
 end
 
@@ -185,15 +178,10 @@ function logpdf!(node::LeafNode, data::DataFrame,
         return zeros(nobs)
     end
 
-    #Get the data
-    if isa(data, DataFrame)
-        vals = data[!, node.varname]
-    #Array with named tuples
-    elseif isa(data[1], NamedTuple)
-        vals = [tup[node.varname] for tup in data]
-    else
-        vals = data
-    end
+    #Get the data for the corresponding column
+    vals = data[!, node.varname]
+
+    #Evaluate the logpdf
     nodelogpdf = Distributions.logpdf.(typeof(node.distribution)(params[node.id]...), vals)
     #Add to memory
     memory[node.id] = nodelogpdf
