@@ -1,11 +1,3 @@
-#=
-TO DO:
-    Implement a function to set the evidence
-    Implement logpdf function
-    Implement likelihood function
-    Implement loglikelihood function
-    Implement sample function
-=#
 using Distributions
 using DataFrames
 #This global variable is to assign an ID to each node
@@ -20,6 +12,7 @@ include("sum_nodes_methods.jl")
 include("product_nodes_methods.jl")
 include("leaf_nodes_methods.jl")
 include("structure_learning.jl")
+include("selective_spn.jl")
 
 #Utilities
 include("utilities.jl")
