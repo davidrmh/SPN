@@ -88,3 +88,48 @@ function getcalctrees(leafnodes::Array{Any, 1}, dictval::Dict{Any, Any})
     end
     calctrees
 end
+
+"""
+    selective_mle!(root::AbstractNode, calctrees::Array{Any, 1})
+
+Set the weights for sum nodes to the maximum likelihood estimate for selective SPNs.
+This function implements equation (9) from the paper
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+
+The modification is done in place for all the sum nodes in the network.
+
+# Arguments
+- `root::AbstractNode` Root node of the SPN.
+
+- `calctrees::Array{Any, 1}` Array with the calculation trees (see function `getcalctrees`).
+"""
+function selective_mle!(root::AbstractNode, calctrees::Array{Any, 1})
+    #Get sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+
+    #Obtain the ML estimates
+    for node in sumnodes
+        #number of children
+        nchildren = length(node.children)
+        #This array stores the quantities #(S,C)
+        count_sc = zeros(nchildren)
+        for i = 1:nchildren
+            child = node.children[i]
+            for tree in calctrees
+                #Increase count if the sum node and its child appear in the tree
+                if node.id in tree && child.id in tree
+                    count_sc[i] = count_sc[i] + 1
+                end #if
+            end#tree
+        end #i
+        #This variable is #(S)
+        sum_count = sum(count_sc)
+        if  sum_count == 0
+            mle_weights = zeros(nchildren) .+ 1 /nchildren
+        else
+            mle_weights = count_sc ./ (sum_count + eps())
+        end #if
+        #Update weights
+        setweights!(node, mle_weights)
+    end #node
+end
