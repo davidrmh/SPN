@@ -1,6 +1,9 @@
 #========================================
 Some Examples
 ========================================#
+"""
+Mixture of gaussian distributions.
+"""
 function normalmixture(weights = [1/3, 1/3, 1/3], mu = [-5, -2, 2], sig = [0.5, 3, 1])
     #Create the sum node
     sumnode = SumNode([], [undef], weights)
@@ -17,6 +20,9 @@ function normalmixture(weights = [1/3, 1/3, 1/3], mu = [-5, -2, 2], sig = [0.5, 
     sumnode
 end
 
+"""
+Naive bayes architecture
+"""
 function naivebayesmixture(weights = [[0.5, 0.2, 0.3], [0.6, 0.4], [0.9, 0.1], [0.3, 0.7], [0.2, 0.8]])
     s1 = SumNode([], [undef], weights[1]) #root
     s2 = SumNode([], [], weights[2])
@@ -45,6 +51,11 @@ function naivebayesmixture(weights = [[0.5, 0.2, 0.3], [0.6, 0.4], [0.9, 0.1], [
     s1
 end
 
+"""
+Independent variables.
+This example is a generalization of figure 1a) from  the paper
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+"""
 function independent(num_var = 3)
     #root node
     root = ProductNode([], [undef])
@@ -137,5 +148,51 @@ function chainproducts()
     addchildren!(n7, [n9, n13, n14])
     addchildren!(n8, [n15, n16])
     addchildren!(n9, [n17, n18])
+    n1
+end
+
+"""
+This example corresponds to figure 2c) from  the paper
+`Learning Selective Sum-Product Networks by Peharz, R. et al`.
+"""
+function regularselective()
+    #root
+    n1 = SumNode([], [undef], [0.7, 0.3])
+    n2 = SumNode([], [], [0.5, 0.5])
+    n3 = ProductNode([], [])
+    n4 = ProductNode([], [])
+    n5 = ProductNode([], [])
+    n6 = SumNode([], [], [0.2, 0.8])
+    n7 = ProductNode([], [])
+    n8 = ProductNode([], [])
+    n9 = SumNode([], [], [0.3, 0.7])
+    n10 = SumNode([], [], [0.1, 0.9])
+    n11 = SumNode([], [], [0.2, 0.8])
+    n12 = SumNode([], [], [0.5, 0.5])
+    n13 = SumNode([], [], [0.6, 0.4])
+    n14 = SumNode([], [], [0.55, 0.45])
+    n15 = IndicatorNode([], :Z_2)
+    n16 = IndicatorNode([], :Z_1)
+    n17 = IndicatorNode([], :Y_2)
+    n18 = IndicatorNode([], :Y_1)
+    n19 = IndicatorNode([], :X_3)
+    n20 = IndicatorNode([], :X_2)
+    n21 = IndicatorNode([], :X_1)
+
+    #Connect
+    addchildren!(n1, [n2, n3])
+    addchildren!(n2, [n4, n5])
+    addchildren!(n3, [n21, n13, n12])
+    addchildren!(n4, [n17, n6])
+    addchildren!(n5, [n18, n14, n11])
+    addchildren!(n6, [n8, n7])
+    addchildren!(n7, [n9, n19])
+    addchildren!(n8, [n10, n20])
+    addchildren!(n9, [n16, n15])
+    addchildren!(n10, [n16, n15])
+    addchildren!(n11, [n16, n15])
+    addchildren!(n12, [n16, n15])
+    addchildren!(n13, [n17, n18])
+    addchildren!(n14, [n19, n20])
     n1
 end
