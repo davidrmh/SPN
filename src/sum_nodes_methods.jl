@@ -35,7 +35,14 @@ function pdf(s::SumNode, data::Union{Real, AbstractArray, NamedTuple, DataFrame}
 end
 
 """
-Set weights for sum nodes
+    setweights!(node::SumNode, w::Array{Float64, 1})
+Set weights for sum nodes. The modification is done in-place and previous
+weights are deleted.
+
+# Arguments
+- `node::SumNode` A sum node.
+
+- `w::Array{Float64, 1}` Array with the new weights.
 """
 function setweights!(node::SumNode, w::Array{Float64, 1})
     #Error handling
@@ -47,6 +54,8 @@ function setweights!(node::SumNode, w::Array{Float64, 1})
         println("You need to have positive weights")
         return
     end
+    #Delete previous weights
+    node.weights = []
     push!(node.weights, w...)
 end
 
