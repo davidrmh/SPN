@@ -69,7 +69,7 @@ function ProductNode(children, parents)
 end
 
 """
-    SumNode(children, parents)
+    SumNode(children, parents, weights)
 
 Create a sum node. With this signature, id field is handled internally.
 For root nodes, set parents = [undef].
@@ -83,6 +83,7 @@ When a node is not a copy, `copyof` is set to `0`
 # Arguments
 - `children::AbstractVector{Union{AbstractNode,AbstractArray}}` Children nodes.
 - `parents::AbstractVector{Union{AbstractNode,AbstractArray,UndefInitializer}}` Parent nodes.
+- `weights::Array{Float64,1}` Weights for the children.
 - `id::Int64` id for unique identification.
 - `copyof::Int64` id of the node that is beeing copied.
 
