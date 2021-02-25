@@ -136,7 +136,12 @@ function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any},
     #Apply (stable) logsumexp
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
-    m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
+    result = m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
+    #This is to avoid NaN that come up when having Inf - Inf
+    #This situations arise when all the children have logpdf equal to -Inf
+    #equivalently pdf equal to 0.
+    result[isnan.(result)] .= -Inf
+    result
 end
 
 """
@@ -196,6 +201,10 @@ function logpdf!(node::SumNode, data::DataFrame,
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
     nodelogpdf = m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
+    #This is to avoid NaN that come up when having Inf - Inf
+    #This situations arise when all the children have logpdf equal to -Inf
+    #equivalently pdf equal to 0.
+    nodelogpdf[isnan.(nodelogpdf)] .= -Inf
     #Add to memory
     memory[node.id] = nodelogpdf
     nodelogpdf
