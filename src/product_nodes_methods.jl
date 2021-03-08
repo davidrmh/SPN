@@ -136,3 +136,47 @@ function logpdf!(node::ProductNode, data::DataFrame,
     memory[node.id] = nodelogpdf
     nodelogpdf
 end
+
+"""
+    _local_partial_deriv!(parent::ProductNode, child::AbstractNode, logpdfmem::Dict{Any, Any}, derivmem::Dict{Any, Any})
+
+Calculate the local partial derivative of a product parent node with respect
+to one of its children.
+
+Return an array of size 1 x `number of observations` used to calculate the
+argument `logpdfmem` (see function `logpdf!`).
+
+Modify `in-place` the argument `derivmem` which is a dictionary with keys
+`(i, j)` that correspond to the partial derivative of node with id i with respect to
+node with id j.
+
+# Arguments
+- `parent::ProductNode` A product node.
+
+- `child::AbstractNode` A node.
+
+- `logpdfmem::Dict{Any, Any}` Dictionary created with the `logpdf!` function.
+
+- `derivmem::Dict{Any, Any}` Dictionary with the partial derivatives.
+"""
+function _local_partial_deriv!(parent::ProductNode, child::AbstractNode,
+    logpdfmem::Dict{Any, Any}, derivmem::Dict{Any, Any})
+
+    #If already calculated, use the memory
+    if (parent.id, child.id) in keys(derivmem)
+        return derivmem[(parent.id, child.id)]
+    end
+    #Calculate the derivative
+    prod = 1
+    for c in parent.children
+        #Multiply the value of each child
+        #except the one that involves the derivative
+        if c != child
+            #Array of size 1 x number of observations
+            prod = prod .* exp.(logpdfmem[c.id])
+        end
+    end
+    #add to memory
+    derivmem[(parent.id, child.id)] = prod
+    return derivmem[(parent.id, child.id)]
+end

@@ -196,7 +196,7 @@ function logpdf!(node::SumNode, data::DataFrame,
         logchildren[i, :] = !haskey(memory, child.id) ?
         logpdf!(child, data, params, memory, margvar) : memory[child.id]
     end
-    
+
     #Apply (stable) logsumexp
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
@@ -209,4 +209,53 @@ function logpdf!(node::SumNode, data::DataFrame,
     #Add to memory
     memory[node.id] = nodelogpdf
     nodelogpdf
+end
+
+"""
+    _local_partial_deriv!(parent::SumNode, child::AbstractNode, logpdfmem::Dict{Any, Any}, derivmem::Dict{Any, Any})
+
+Calculate the local partial derivative of a sum parent node with respect
+to one of its children.
+
+Return an array of size 1 x `number of observations` used to calculate the
+argument `logpdfmem` (see function `logpdf!`).
+
+Modify `in-place` the argument `derivmem` which is a dictionary with keys
+`(i, j)` that correspond to the partial derivative of node with id i with respect to
+node with id j.
+
+# Arguments
+- `parent::SumNode` A sum node.
+
+- `child::AbstractNode` A node.
+
+- `logpdfmem::Dict{Any, Any}` Dictionary created with the `logpdf!` function.
+
+- `derivmem::Dict{Any, Any}` Dictionary with the partial derivatives.
+"""
+function _local_partial_deriv!(parent::SumNode, child::AbstractNode,
+    logpdfmem::Dict{Any, Any}, derivmem::Dict{Any, Any})
+
+    #If already calculated, use the memory
+    if (parent.id, child.id) in keys(derivmem)
+        return derivmem[(parent.id, child.id)]
+    end
+    #Calculate the derivative
+    #In this case is just the weight associated to `child`
+
+    #Number of observations in the dataset used
+    #for calculating logpdfmem
+    nobs = length(logpdfmem[parent.id])
+
+    for i in eachindex(parent.children)
+        #Locate the weight corresponding to `child`
+        if parent.children[i] == child
+            #add weight to memory
+            #The value in memory is an array with size 1 x nobs
+            #Every entry is the weight `w`
+            w = parent.weights[i]
+            derivmem[(parent.id, child.id)] = repeat(w:w, nobs)
+            return derivmem[(parent.id, child.id)]
+        end
+    end
 end
