@@ -13,6 +13,7 @@ include("product_nodes_methods.jl")
 include("leaf_nodes_methods.jl")
 include("structure_learning.jl")
 include("selective_spn.jl")
+include("parameter_learning.jl")
 
 #Utilities
 include("utilities.jl")
