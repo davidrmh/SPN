@@ -126,13 +126,13 @@ function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any},
     logweights = log.(params[node.id])
 
     #logpdf of each children
-    logchildren = []
+    nobs = size(data)[1]
+    nchildren = length(node.children)
+    logchildren = zeros((nchildren, nobs))
     for i in eachindex(node.children)
-        childlogpdf = logpdf(node.children[i], data, params, margvar)
-        push!(logchildren, [childlogpdf...])
+        logchildren[i, :] = logpdf(node.children[i], data, params, margvar)
     end
-    #array of n_children X n_obs
-    logchildren = transpose(reduce(hcat, logchildren))
+
     #Apply (stable) logsumexp
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
@@ -186,24 +186,25 @@ function logpdf!(node::SumNode, data::DataFrame,
     logweights = log.(params[node.id])
 
     #logpdf of each children
-    logchildren = []
+    nobs = size(data)[1]
+    nchildren = length(node.children)
+    logchildren = zeros((nchildren, nobs))
     for i in eachindex(node.children)
         child = node.children[i]
         #Calculate the child's logpdf if it hasn't been
         #previously calculated
-        childlogpdf = !haskey(memory, child.id) ?
+        logchildren[i, :] = !haskey(memory, child.id) ?
         logpdf!(child, data, params, memory, margvar) : memory[child.id]
-        push!(logchildren, [childlogpdf...])
     end
-    #array of n_children X n_obs
-    logchildren = transpose(reduce(hcat, logchildren))
+    
     #Apply (stable) logsumexp
     plus = logweights .+ logchildren
     m = maximum(plus, dims = 1)
     nodelogpdf = m .+ log.( sum( exp.(plus .- m), dims = 1 ) )
     #This is to avoid NaN that come up when having Inf - Inf
-    #This situations arise when all the children have logpdf equal to -Inf
+    #These situations arise when all the children have logpdf equal to -Inf
     #equivalently pdf equal to 0.
+    #Unfortunately, this line causes conflicts with Zygote
     nodelogpdf[isnan.(nodelogpdf)] .= -Inf
     #Add to memory
     memory[node.id] = nodelogpdf

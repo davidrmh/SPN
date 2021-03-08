@@ -120,17 +120,16 @@ function logpdf!(node::ProductNode, data::DataFrame,
     end
 
     #logpdf of each children
-    logchildren = []
+    nobs = size(data)[1]
+    nchildren = length(node.children)
+    logchildren = zeros((nchildren, nobs))
     for i in eachindex(node.children)
         child = node.children[i]
         #Calculate the child's logpdf if it hasn't been
         #previously calculated
-        childlogpdf = !haskey(memory, child.id) ?
+        logchildren[i, :] = !haskey(memory, child.id) ?
         logpdf!(child, data, params, memory, margvar) : memory[child.id]
-        push!(logchildren, [childlogpdf...])
     end
-    #Array of n_children X n_obs
-    logchildren = transpose(reduce(hcat, logchildren))
     #Array of 1 x n_obs
     nodelogpdf = sum(logchildren, dims = 1)
     #Add to memory
