@@ -22,10 +22,12 @@ sum_nodes_methods.jl,iscomplete,filter_by_type|scope
 sum_nodes_methods.jl,sample!,sample!(other nodes)
 sum_nodes_methods.jl,logpdf,logpdf(other nodes)
 sum_nodes_methods.jl,logpdf!,logpdf!(other nodes)
+sum_nodes_methods.jl,_local_partial_deriv!,logpdf!(in the argument logpdfmem)
 product_nodes_methods.jl,pdf,pdf(other nodes)
 product_nodes_methods.jl,sample!,sample!(other nodes)
 product_nodes_methods.jl,logpdf,logpdf(other nodes)
 product_nodes_methods.jl,logpdf!,logpdf!(other nodes)
+product_nodes_methods.jl,_local_partial_deriv!,logpdf!(in the argument logpdfmem)
 leaf_nodes_methods.jl,pdf,topositivespace
 leaf_nodes_methods.jl,sample!,None
 leaf_nodes_methods.jl,tologspace,None
@@ -61,3 +63,5 @@ evo_learn.jl,loglike,createnamedtuples|pdf
 evo_learn.jl,tologspace,None
 evo_learn.jl,toposspace,None
 evo_learn.jl,differentialevolution,initializepopulation|getparameters|tologspace|toposspace|createmixture
+parameter_learning.jl,_partial_deriv!,logpdf!(in the argument logpdfmem)|_local_partial_deriv!
+parameter_learning.jl,nodesderivatives,_partial_deriv!|logpdf!(in the argument logpdfmem)
