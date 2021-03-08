@@ -104,3 +104,33 @@ function nodesderivatives(root::AbstractNode, logpdfmem::Dict{Any, Any}, onlyroo
     end
     derivmem
 end
+
+"""
+Get the partial derivative of the log-likelihood function with respect to the
+weights of each sum node.
+
+Return a dictionary with keys `(i, j)` where `i` is the id of a sum node and
+`j` the index of its weight `j`.
+
+This function implements equation (6.6) from the PhD. thesis
+`Foundations of Sum-Product Networksfor Probabilistic Modeling` by Robert Peharz.
+"""
+function weights_loglike_deriv(root::AbstractNode, logpdfmem::Dict{Any, Any}, derivmem::Dict{Any, Any})
+    #Get sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+
+    #To store the results
+    logderiv = Dict()
+
+    for node in sumnodes
+        for i in eachindex(node.children)
+            child = node.children[i]
+            factor1 = 1 ./(exp.(logpdfmem[root.id]) .+ eps())
+            #Partial derivative of root with respect child
+            factor2 = derivmem[(root.id, node.id)]
+            factor3 = exp.(logpdfmem[child.id])
+            logderiv[(node.id, i)] = sum(factor1 .* factor2 .* factor3)
+        end # i
+    end # node
+    logderiv
+end
