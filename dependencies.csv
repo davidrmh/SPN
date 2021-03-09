@@ -23,6 +23,7 @@ sum_nodes_methods.jl,sample!,sample!(other nodes)
 sum_nodes_methods.jl,logpdf,logpdf(other nodes)
 sum_nodes_methods.jl,logpdf!,logpdf!(other nodes)
 sum_nodes_methods.jl,_local_partial_deriv!,logpdf!(in the argument logpdfmem)
+sum_nodes_methods.jl,initializeweights!,filter_by_type|setweights!
 product_nodes_methods.jl,pdf,pdf(other nodes)
 product_nodes_methods.jl,sample!,sample!(other nodes)
 product_nodes_methods.jl,logpdf,logpdf(other nodes)

@@ -268,3 +268,25 @@ function _local_partial_deriv!(parent::SumNode, child::AbstractNode,
         end
     end
 end
+
+"""
+    initializeweights!(root::AbstractNode)
+Initialize the weights of each sum node in the network.
+The modification is done in-place.
+
+# Arguments
+- `root::AbstractNode` Root node of the network.
+"""
+function initializeweights!(root::AbstractNode)
+    #Get sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+    #initialize by sampling from a Dirichlet distribution
+    for node in sumnodes
+        #Number of children
+        nchild = length(node.children)
+        dirichlet = Dirichlet(nchild, 2)
+        #Is donde in this way to make it compatible with setweights! function
+        w = [rand(dirichlet, 1)...]
+        setweights!(node, w)
+    end
+end
