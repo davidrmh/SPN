@@ -104,8 +104,9 @@ end
 
 Calculate the logpdf of a sum node, applying the logsumexp trick.
 
-Return an array with dimension 1 x size(data)[1]. That is, an array of size
-1 x number of observations in the dataset.
+Return a column array with dimension size(data)[1] elements.
+That is, a column array with as many elements as the number of observations in the dataset.
+Each entry is the logpdf of the node for the corresponding observation.
 
 # Arguments
 - `node::SumNode` A sum node.
@@ -141,6 +142,9 @@ function logpdf(node::SumNode, data::DataFrame, params::Dict{Any, Any},
     #This situations arise when all the children have logpdf equal to -Inf
     #equivalently pdf equal to 0.
     result[isnan.(result)] .= -Inf
+
+    #Reshape (column array with nobs elements)
+    result = reshape(result, (nobs,))
     result
 end
 
@@ -150,8 +154,9 @@ end
 
 Calculate the logpdf of a sum node, applying the logsumexp trick.
 
-Return an array with dimension 1 x size(data)[1]. That is, an array of size
-1 x number of observations in the dataset.
+Return a column array with dimension size(data)[1] elements.
+That is, a column array with as many elements as the number of observations in the dataset.
+Each entry is the logpdf of the node for the corresponding observation.
 
 Modify `in-place` the dictionary `memory`.
 
@@ -206,6 +211,10 @@ function logpdf!(node::SumNode, data::DataFrame,
     #equivalently pdf equal to 0.
     #Unfortunately, this line causes conflicts with Zygote
     nodelogpdf[isnan.(nodelogpdf)] .= -Inf
+
+    #Reshape (column array with nobs elements)
+    nodelogpdf = reshape(nodelogpdf, (nobs,))
+
     #Add to memory
     memory[node.id] = nodelogpdf
     nodelogpdf

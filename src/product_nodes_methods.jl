@@ -51,8 +51,9 @@ end
 
 Calculate the logpdf of a product node.
 
-Return an array with dimension 1 x size(data)[1]. That is, an array of size
-1 x number of observations in the dataset.
+Return a column array with dimension size(data)[1] elements.
+That is, a column array with as many elements as the number of observations in the dataset.
+Each entry is the logpdf of the node for the corresponding observation.
 
 # Arguments
 - `node::ProductNode` A product node.
@@ -71,6 +72,7 @@ function logpdf(node::ProductNode, data::DataFrame, params::Dict{Any, Any},
 
     #logpdf of each children
     logchildren = []
+    nobs = size(data)[1]
     for i in eachindex(node.children)
         childlogpdf = logpdf(node.children[i], data, params, margvar)
         push!(logchildren, [childlogpdf...])
@@ -78,7 +80,10 @@ function logpdf(node::ProductNode, data::DataFrame, params::Dict{Any, Any},
     #Array of n_children X n_obs
     logchildren = transpose(reduce(hcat, logchildren))
     #Array of 1 x n_obs
-    sum(logchildren, dims = 1)
+    result = sum(logchildren, dims = 1)
+    #Reshape (column array with nobs elements)
+    result = reshape(result, (nobs,))
+    result
 end
 
 """
@@ -87,8 +92,9 @@ end
 
 Calculate the logpdf of a product node.
 
-Return an array with dimension 1 x size(data)[1]. That is, an array of size
-1 x number of observations in the dataset.
+Return a column array with dimension size(data)[1] elements.
+That is, a column array with as many elements as the number of observations in the dataset.
+Each entry is the logpdf of the node for the corresponding observation.
 
 Modify `in-place` the dictionary `memory`.
 
@@ -132,6 +138,8 @@ function logpdf!(node::ProductNode, data::DataFrame,
     end
     #Array of 1 x n_obs
     nodelogpdf = sum(logchildren, dims = 1)
+    #Reshape (column array with nobs elements)
+    nodelogpdf = reshape(nodelogpdf, (nobs,))
     #Add to memory
     memory[node.id] = nodelogpdf
     nodelogpdf
