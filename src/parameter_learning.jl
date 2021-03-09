@@ -106,6 +106,7 @@ function nodesderivatives(root::AbstractNode, logpdfmem::Dict{Any, Any}, onlyroo
 end
 
 """
+PENDING WORK
 Get the partial derivative of the log-likelihood function with respect to the
 weights of each sum node.
 
@@ -133,4 +134,152 @@ function weights_loglike_deriv(root::AbstractNode, logpdfmem::Dict{Any, Any}, de
         end # i
     end # node
     logderiv
+end
+
+"""
+Gradient ascent step for weights.
+PENDING WORK
+"""
+function _weights_grad_step!(sumnodes::Array{Any, 1}, gradient::Dict{Any, Any}, rate::Float64)
+    for node in sumnodes
+        for i in eachindex(node.weights)
+            #update the weight with a gradient ascent step
+            node.weights[i] = node.weights[i] + rate * gradient[(node.id, i)]
+        end
+    end
+end
+
+"""
+Project the weights onto the probabilistic simplex
+The modification is done in-place.
+
+This function implements the algorithm in figure 1 from the paper
+`Efficient Projections onto the L1-Ball for Learning in High Dimensions` by Duchi, et al.
+"""
+function _projection_simplex!(sumnodes)
+
+    for node in sumnodes
+        #Number of weights
+        n = length(node.weights)
+
+        #sorted weights (decreasing order)
+        mu = sort(node.weights, rev = true)
+
+        #Cummulative sum
+        mu_cumsum = cumsum(mu)
+
+        #to store the j indices
+        rho_set = []
+        for j in 1:n
+            aux = mu[j] - (1/j) *(mu_cumsum[j] - 1)
+            if aux > 0
+                push!(rho_set, j)
+            end
+        end # j
+        rho = rho_set != [] ? maximum(rho_set) : n
+        theta = (1 / rho) * (mu_cumsum[rho] - 1)
+        #Update weights
+        for i in eachindex(node.weights)
+            node.weights[i] = max(node.weights[i] - theta, 0)
+        end # i
+    end #node
+end
+"""
+Learn the parameters using gradient ascent
+PENDING WORK
+"""
+function learn_weights_gradient!(root::Union{SumNode, ProductNode}, data::DataFrame,
+    niter::Int64, rate::Float64, boolinit::Bool)
+    #Get sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+
+    #Initialize the weights
+    if boolinit
+        initializeweights!(root)
+    end
+
+    parameters = getparameters(root, false)[1]
+    for i in 1:niter
+
+        logpdfmem = Dict()
+        #Evalate the data with current parameters
+        logpdf!(root, data, parameters, logpdfmem)
+
+        #Nodes derivatives
+        nodesderiv = nodesderivatives(root, logpdfmem, true)
+
+        #Gradient of log-likelihood with respect to weights
+        weights_grad = weights_loglike_deriv(root, logpdfmem, nodesderiv)
+
+        #Gradient step
+        _weights_grad_step!(sumnodes, weights_grad, rate)
+
+        #Project onto the probabilistic simplex
+        _projection_simplex!(sumnodes)
+    end
+end
+
+"""
+    learn_weights_em!(root::Union{SumNode, ProductNode}, data::DataFrame, niter::Int64, boolinit::Bool)
+
+Optimise weights using Expectation-Maximization algorithm. The modification is done in-place.
+
+This function implements Algorithm 7 from the PhD. thesis
+`Foundations of Sum-Product Networksfor Probabilistic Modeling` by Robert Peharz.
+
+# Arguments
+- `root::Union{SumNode, ProductNode}` Root node.
+
+- `data::DataFrame` Data used for learning.
+
+- `niter::Int64` Number of iterations.
+
+- `boolint::Bool` Whether to initialize the weights (true) or not (false).
+This parameter can be used to continue the training (boolinit = false) of a model.
+"""
+function learn_weights_em!(root::Union{SumNode, ProductNode}, data::DataFrame, niter::Int64, boolinit::Bool)
+    #Get sum nodes
+    sumnodes = filter_by_type(root, SumNode)
+
+    #Initialize the weights
+    if boolinit
+        initializeweights!(root)
+    end
+
+    #This line is outside because the content in `parameters` is pointer-like referenced
+    parameters = getparameters(root, false)[1]
+    for n in 1:niter
+        #Evalate the data
+        logpdfmem = Dict()
+        logpdf!(root, data, parameters, logpdfmem)
+
+        #Nodes derivatives
+        nodesderiv = nodesderivatives(root, logpdfmem, true)
+
+        #To store the variable n_{S,C}
+        n_sc = Dict()
+
+        #To store the sum over C of n_{S, C}
+        sum_c = Dict()
+        for node in sumnodes
+            sum_c[node.id] = 0
+            for i in eachindex(node.children)
+                child = node.children[i]
+                w = node.weights[i]
+                factor1 = 1 ./(exp.(logpdfmem[root.id]) .+ eps())
+                #Partial derivative of root with respect child
+                factor2 = nodesderiv[(root.id, node.id)]
+                factor3 = exp.(logpdfmem[child.id])
+                aux = sum(factor1 .* factor2 .* factor3 * w)
+                n_sc[(node.id, i)] = aux
+                #Accumulate the sum over the children of sum node S
+                sum_c[node.id] = sum_c[node.id] + aux
+            end # i
+
+            #Update weight
+            for i in eachindex(node.children)
+                node.weights[i] = n_sc[(node.id, i)] / (sum_c[node.id] + eps())
+            end # i
+        end # node
+    end #niter
 end

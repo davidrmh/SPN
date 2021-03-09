@@ -66,3 +66,4 @@ evo_learn.jl,toposspace,None
 evo_learn.jl,differentialevolution,initializepopulation|getparameters|tologspace|toposspace|createmixture
 parameter_learning.jl,_partial_deriv!,logpdf!(in the argument logpdfmem)|_local_partial_deriv!
 parameter_learning.jl,nodesderivatives,filter_by_type|_partial_deriv!|logpdf!(in the argument logpdfmem)
+parameter_learning.jl,learn_weights_em!,filter_by_type|initializeweights!|getparameters|logpdf!|nodesderivatives
